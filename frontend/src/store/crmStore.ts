@@ -135,8 +135,8 @@ interface CrmState {
   
   // CRM Review Actions
   reviewSubmission: (submissionId: string) => void;
-  requestSubmissionChanges: (submissionId: string, feedback: string) => void;
-  approveSubmission: (submissionId: string) => void;
+  requestSubmissionChanges: (submissionId: string, feedback: string) => Promise<void>;
+  approveSubmission: (submissionId: string) => Promise<void>;
 
   // ─── THEME ACTIONS ────────────────────────────────────────────────────────
   setTheme: (theme: 'light' | 'dark' | 'system') => void;
@@ -1324,39 +1324,54 @@ export const useCrmStore = create<CrmState>()(
       reviewSubmission: (submissionId) => set(s => {
         return {};
       }),
-      requestSubmissionChanges: (submissionId, feedback) => set(s => {
-        const sub = s.submissions.find(sItem => sItem.id === submissionId);
-        return {
-          submissions: s.submissions.map(sItem => sItem.id === submissionId ? {
-            ...sItem,
-            currentStatus: 'CRM_CHANGES_REQUESTED',
-            lastUpdated: new Date().toISOString(),
-            versions: sItem.versions.map((v, i) => i === 0 ? { ...v, status: 'CRM_CHANGES_REQUESTED', crmFeedback: feedback } : v)
-          } : sItem),
-          projects: s.projects.map(p => p.id === sub?.projectId ? { ...p, status: 'In Progress' } : p),
-          tasks: s.tasks.map(t => t.id === sub?.taskId ? { ...t, status: 'IN_PROGRESS' } : t),
-          notifications: [
-            mkNotif('crm_changes_requested', 'Changes Requested', `CRM requested changes on ${sub?.title}`, submissionId, 'submission'),
-            ...s.notifications
-          ]
-        };
-      }),
-      approveSubmission: (submissionId) => set(s => {
-        const sub = s.submissions.find(sItem => sItem.id === submissionId);
-        return {
-          submissions: s.submissions.map(sItem => sItem.id === submissionId ? {
-            ...sItem,
-            currentStatus: 'CRM_APPROVED',
-            lastUpdated: new Date().toISOString(),
-            versions: sItem.versions.map((v, i) => i === 0 ? { ...v, status: 'CRM_APPROVED' } : v)
-          } : sItem),
-          tasks: s.tasks.map(t => t.id === sub?.taskId ? { ...t, status: 'DONE', progress: 100 } : t),
-          notifications: [
-            mkNotif('crm_approved', 'Submission Approved', `CRM approved your submission for ${sub?.title}`, submissionId, 'submission'),
-            ...s.notifications
-          ]
-        };
-      }),
+      requestSubmissionChanges: async (submissionId, feedback) => {
+        // API call first — these two actions used to be local-only `set()`
+        // calls with no backend request at all, so "requesting changes" from
+        // the CRM side never touched task_submissions.status in the
+        // database: the employee's own view (which reads real backend data)
+        // never saw the feedback, and reloading the CRM page reverted the
+        // submission back to pending as if nothing had happened.
+        await taskSubmissionService.review(submissionId, { approve: false, reviewer_feedback: feedback });
+
+        set(s => {
+          const sub = s.submissions.find(sItem => sItem.id === submissionId);
+          return {
+            submissions: s.submissions.map(sItem => sItem.id === submissionId ? {
+              ...sItem,
+              currentStatus: 'CRM_CHANGES_REQUESTED',
+              lastUpdated: new Date().toISOString(),
+              versions: sItem.versions.map((v, i) => i === 0 ? { ...v, status: 'CRM_CHANGES_REQUESTED', crmFeedback: feedback } : v)
+            } : sItem),
+            projects: s.projects.map(p => p.id === sub?.projectId ? { ...p, status: 'In Progress' } : p),
+            tasks: s.tasks.map(t => t.id === sub?.taskId ? { ...t, status: 'IN_PROGRESS' } : t),
+            notifications: [
+              mkNotif('crm_changes_requested', 'Changes Requested', `CRM requested changes on ${sub?.title}`, submissionId, 'submission'),
+              ...s.notifications
+            ]
+          };
+        });
+      },
+      approveSubmission: async (submissionId) => {
+        // Same fix as requestSubmissionChanges above — must actually persist.
+        await taskSubmissionService.review(submissionId, { approve: true });
+
+        set(s => {
+          const sub = s.submissions.find(sItem => sItem.id === submissionId);
+          return {
+            submissions: s.submissions.map(sItem => sItem.id === submissionId ? {
+              ...sItem,
+              currentStatus: 'CRM_APPROVED',
+              lastUpdated: new Date().toISOString(),
+              versions: sItem.versions.map((v, i) => i === 0 ? { ...v, status: 'CRM_APPROVED' } : v)
+            } : sItem),
+            tasks: s.tasks.map(t => t.id === sub?.taskId ? { ...t, status: 'DONE', progress: 100 } : t),
+            notifications: [
+              mkNotif('crm_approved', 'Submission Approved', `CRM approved your submission for ${sub?.title}`, submissionId, 'submission'),
+              ...s.notifications
+            ]
+          };
+        });
+      },
     }),
     {
       name: 'amplivo-crm-store',

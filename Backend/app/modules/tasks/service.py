@@ -184,6 +184,36 @@ class TaskSubmissionService:
         self._db = db
     async def list_by_task(self, task_id: uuid.UUID) -> Sequence[TaskSubmission]:
         return await self._repo.list_by_task(task_id)
+    async def list_queue(self, *, status: str | None = None, offset: int = 0, limit: int = 20) -> tuple[list[dict], int]:
+        """CRM review queue feed: every submission across all tasks/employees,
+        enriched with the task/project/submitter context a reviewer needs
+        without a round trip per row. Previously nothing in the app fetched
+        submissions outside a single already-known task, so the CRM side had
+        no way to even list what was waiting on it."""
+        from app.models.user import User
+        from sqlalchemy import select as sa_select
+
+        items = await self._repo.list_all_filtered(status=status, offset=offset, limit=limit)
+        total = await self._repo.count_all_filtered(status=status)
+
+        submitter_ids = {s.submitted_by for s in items if s.submitted_by}
+        names: dict[uuid.UUID, str] = {}
+        if submitter_ids:
+            result = await self._db.execute(sa_select(User.id, User.full_name).where(User.id.in_(submitter_ids)))
+            names = {uid: full_name for uid, full_name in result.all()}
+
+        enriched = [
+            {
+                "submission": s,
+                "task_title": s.task.title if s.task else "",
+                "task_number": s.task.task_number if s.task else "",
+                "project_id": s.task.project_id if s.task else None,
+                "project_name": s.task.project.name if s.task and s.task.project else None,
+                "submitted_by_name": names.get(s.submitted_by) if s.submitted_by else None,
+            }
+            for s in items
+        ]
+        return enriched, total
     async def get(self, submission_id: uuid.UUID) -> TaskSubmission:
         s = await self._repo.get_by_id(submission_id)
         if s is None: raise NotFoundException("TaskSubmission")

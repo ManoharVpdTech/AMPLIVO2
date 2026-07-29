@@ -118,3 +118,15 @@ class TaskSubmissionRepository(BaseRepository[TaskSubmission]):
     async def list_by_submitter(self, submitted_by: uuid.UUID) -> Sequence[TaskSubmission]:
         r = await self._db.execute(select(TaskSubmission).where(TaskSubmission.submitted_by == submitted_by).order_by(TaskSubmission.created_at.desc()))
         return r.scalars().all()
+    async def list_all_filtered(self, *, status=None, offset=0, limit=20) -> Sequence[TaskSubmission]:
+        """Cross-task submission feed for the CRM review queue - unlike
+        list_by_task, this isn't scoped to a single task the caller already
+        knows about."""
+        stmt = select(TaskSubmission).options(selectinload(TaskSubmission.task).selectinload(Task.project))
+        if status: stmt = stmt.where(TaskSubmission.status == status)
+        stmt = stmt.order_by(TaskSubmission.created_at.desc()).offset(offset).limit(limit)
+        return (await self._db.execute(stmt)).scalars().all()
+    async def count_all_filtered(self, *, status=None) -> int:
+        stmt = select(func.count()).select_from(TaskSubmission)
+        if status: stmt = stmt.where(TaskSubmission.status == status)
+        return (await self._db.execute(stmt)).scalar_one()

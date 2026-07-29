@@ -8,7 +8,7 @@ import {
   LayoutDashboard, Users, FolderKanban, UserCheck,
   FileText, CreditCard, Bell, BarChart3, Settings,
   LogOut, Menu, X, ChevronRight, Briefcase,
-  Building2, CheckCircle,
+  Building2, CheckCircle, ClipboardCheck,
 } from 'lucide-react';
 import { useCrmStore } from '@/store/crmStore';
 import { useAuthStore } from '@/store/authStore';
@@ -21,6 +21,7 @@ const navItems = [
   { href: '/crm/clients', label: 'Clients', icon: Building2 },
   { href: '/crm/projects', label: 'Projects', icon: FolderKanban },
   { href: '/crm/employees', label: 'Employees', icon: UserCheck },
+  { href: '/crm/submissions', label: 'Submissions', icon: ClipboardCheck },
   { href: '/crm/invoices', label: 'Invoices', icon: FileText },
   { href: '/crm/payments', label: 'Payments', icon: CreditCard },
   { href: '/crm/notifications', label: 'Notifications', icon: Bell, badge: true },

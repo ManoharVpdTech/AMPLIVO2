@@ -167,7 +167,12 @@ async def list_all_payments(
     payment_status: str | None = Query(None, alias="status"),
     svc: PaymentService = Depends(get_payment_service),
     _: User = Depends(get_current_user),
-    _role: str = Depends(require_roles("finance")),
+    # "crm" must be able to list payments, not just act on individual ones -
+    # verify-crm/reject below already grant crm access, but this endpoint
+    # (the one the CRM Payments Dashboard actually calls to populate the
+    # page) was left finance-only, so every CRM-role user 403'd on load and
+    # the dashboard silently rendered as if zero payments existed.
+    _role: str = Depends(require_roles("finance", "crm")),
 ):
     items, total = await svc.list_all_payments(
         status=payment_status, sort_by=params.sort_by, sort_order=params.sort_order,

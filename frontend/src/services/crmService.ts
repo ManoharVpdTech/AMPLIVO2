@@ -216,6 +216,18 @@ export const taskSubmissionService = {
     const { data } = await api.put(`/submissions/${submissionId}`, payload);
     return data;
   },
+
+  review: async (submissionId: string, payload: { approve: boolean; reviewer_feedback?: string }) => {
+    const { data } = await api.post(`/submissions/${submissionId}/review`, payload);
+    return data;
+  },
+
+  // CRM review queue: every submission across every task, not just one
+  // already-known task's history.
+  getQueue: async (params?: { page?: number; page_size?: number; status?: string }) => {
+    const { data } = await api.get('/submissions', { params });
+    return data;
+  },
 };
 
 // ── Notifications ─────────────────────────────────────────────────────────────

@@ -225,6 +225,29 @@ async def create_task_submission(
     s = await svc.create(task_id, payload.model_dump(), submitted_by=current_user.id); await db.commit()
     return TaskSubmissionRead.model_validate(s)
 
+@router.get("/submissions", response_model=PaginatedResponse[TaskSubmissionQueueItem], summary="CRM review queue: list all task submissions")
+async def list_all_submissions(
+    params: PaginationParams = Depends(),
+    submission_status: str | None = Query(None, alias="status"),
+    svc: TaskSubmissionService = Depends(get_task_submission_service),
+    _: str = Depends(require_roles("admin", "crm")),
+):
+    enriched, total = await svc.list_queue(status=submission_status, offset=params.offset, limit=params.page_size)
+    out_items = [
+        TaskSubmissionQueueItem.model_validate(
+            TaskSubmissionRead.model_validate(e["submission"]).model_dump()
+            | {
+                "task_title": e["task_title"],
+                "task_number": e["task_number"],
+                "project_id": e["project_id"],
+                "project_name": e["project_name"],
+                "submitted_by_name": e["submitted_by_name"],
+            }
+        )
+        for e in enriched
+    ]
+    return PaginatedResponse[TaskSubmissionQueueItem].create(items=out_items, total=total, page=params.page, page_size=params.page_size)
+
 @router.put("/submissions/{submission_id}", response_model=TaskSubmissionRead, summary="Resubmit work")
 async def resubmit_task_submission(
     submission_id: uuid.UUID, payload: TaskSubmissionUpdate, db: AsyncSession = Depends(get_db),
