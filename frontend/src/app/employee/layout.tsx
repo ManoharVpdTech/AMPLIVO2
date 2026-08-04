@@ -34,7 +34,10 @@ export default function EmployeeLayout({
     // Real tasks/projects (fetchAllData) and real employee records
     // (fetchEmployees) - the mock arrays these replace only exist as the
     // store's pre-fetch initial state and must never reach the UI.
-    fetchAllData();
+    // skipFinance: true - the Employee portal never renders invoices/
+    // payments, and GET /finance/payments is finance-role-gated, so
+    // fetching it here only produced repeated console 403s.
+    fetchAllData({ skipFinance: true });
     fetchEmployees();
   }, [fetchAllData, fetchEmployees]);
 

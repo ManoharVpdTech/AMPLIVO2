@@ -45,32 +45,32 @@ export default function PortfolioPage() {
 
           {/* Grid */}
           {filteredItems.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredItems.map((item, i) => (
                 <AnimateOnScroll key={item.id} animation="scale-in" delay={i * 60}>
                 <div
-                  className={`relative group overflow-hidden rounded-2xl cursor-pointer card-hover ${i === 0 ? 'col-span-2 row-span-1' : ''}`}
+                  className={`relative group overflow-hidden rounded-2xl cursor-pointer card-hover ${i === 0 ? 'md:col-span-2 md:row-span-1' : ''}`}
                   onClick={() => setSelectedItem(item)}
                 >
-                  <div className="w-full overflow-hidden h-56">
+                  <div className="w-full overflow-hidden h-64 sm:h-72">
                     <img
                       src={item.image}
                       alt={item.title}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     />
                   </div>
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#111827]/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <div className="absolute bottom-0 left-0 right-0 p-5">
-                      <div className="text-[#06B6D4] text-xs font-semibold uppercase tracking-wider mb-1">{item.category}</div>
-                      <h3 className="text-white font-semibold text-sm mb-2 leading-snug">{item.title}</h3>
-                      <div className="flex flex-wrap gap-1.5">
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0A0F1E] via-[#0A0F1E]/60 to-transparent opacity-90 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="absolute bottom-0 left-0 right-0 p-6 flex flex-col justify-end h-full">
+                      <div className="text-[#06B6D4] text-xs font-bold uppercase tracking-wider mb-2 drop-shadow-md">{item.category}</div>
+                      <h3 className="text-white font-bold text-lg mb-3 leading-snug drop-shadow-md">{item.title}</h3>
+                      <div className="flex flex-wrap gap-2">
                         {item.tags.map((tag) => (
                           <span key={tag} className="bg-white/15 text-white text-[10px] px-2 py-0.5 rounded">{tag}</span>
                         ))}
                       </div>
                     </div>
                   </div>
-                  <div className="absolute top-3 right-3 bg-white/90 text-slate-700 text-[10px] font-semibold px-2.5 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="absolute top-4 right-4 bg-white/95 text-slate-800 text-xs font-bold px-3 py-1.5 rounded-full shadow-lg opacity-100 transition-opacity">
                     {item.client}
                   </div>
                 </div>

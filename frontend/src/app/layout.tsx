@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { PageTransition } from '@/components/PageTransition';
+import { ScrollToTop } from '@/components/ScrollToTop';
 import { Toaster } from '@/components/ui/Toaster';
 import './globals.css';
 
@@ -46,6 +47,7 @@ export default function RootLayout({
         >
           Skip to main content
         </a>
+        <ScrollToTop />
         <PageTransition>{children}</PageTransition>
         <Toaster />
       </body>

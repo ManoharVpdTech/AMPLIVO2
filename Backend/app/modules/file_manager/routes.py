@@ -4,11 +4,12 @@ from __future__ import annotations
 import uuid
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, Query, UploadFile, status
+from fastapi import APIRouter, Depends, Query, Request, UploadFile, status
 from fastapi import File as UploadFileParam
 from fastapi import Form
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.exceptions import BadRequestException
 from app.dependencies.auth import get_current_user
 from app.dependencies.db import get_db
 from app.dependencies.tenant import get_current_client_id
@@ -26,16 +27,24 @@ MAX_UPLOAD_SIZE = 20 * 1024 * 1024  # 20MB
 
 @router.post("/upload", response_model=FileRead, status_code=status.HTTP_201_CREATED, summary="Upload a file")
 async def upload_file(
+    request: Request,
     upload: UploadFile = UploadFileParam(...),
     folder_id: uuid.UUID | None = Form(None),
     db: AsyncSession = Depends(get_db),
     service: FileService = Depends(get_file_service),
+    folder_service: FileFolderService = Depends(get_file_folder_service),
     current_user: User = Depends(get_current_user),
     scoped_client_id: uuid.UUID | None = Depends(get_current_client_id),
 ):
-    from app.core.exceptions import BadRequestException
+    if folder_id is not None:
+        # Raises NotFoundException (404) / ForbiddenException (403) if the
+        # folder doesn't exist or belongs to another client — otherwise this
+        # would only surface later as a foreign-key IntegrityError (500).
+        await folder_service.get(folder_id, scoped_client_id=scoped_client_id)
 
     contents = await upload.read()
+    if not contents:
+        raise BadRequestException("The uploaded file is empty.")
     if len(contents) > MAX_UPLOAD_SIZE:
         raise BadRequestException("File exceeds the 20MB upload limit.")
 
@@ -44,12 +53,18 @@ async def upload_file(
     stored_name = f"{uuid.uuid4().hex}{safe_suffix}"
     (UPLOADS_DIR / stored_name).write_bytes(contents)
 
+    # FileCreate.url is validated as an absolute http(s) URL, so the stored
+    # path must be resolved against the request's own origin rather than
+    # passed through as a bare "/uploads/..." path (which used to fail that
+    # validation with an unhandled ValidationError -> HTTP 500).
+    file_url = f"{str(request.base_url).rstrip('/')}/uploads/{stored_name}"
+
     file_obj = await service.create(FileCreate(
         name=stored_name,
         original_name=original_name,
         mime_type=upload.content_type,
         size=len(contents),
-        url=f"/uploads/{stored_name}",
+        url=file_url,
         folder_id=folder_id,
         client_id=scoped_client_id,
         uploaded_by=current_user.id,

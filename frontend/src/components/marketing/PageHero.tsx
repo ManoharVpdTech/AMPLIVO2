@@ -1,6 +1,6 @@
 'use client';
 
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import { HeroBackground } from '@/components/marketing/HeroBackground';
 import type { HeroConfig } from '@/types/hero';
 import { HERO_DELAY, HERO_DURATION, HERO_EASE } from '@/constants/hero';
@@ -51,7 +51,7 @@ const ctaVariants = {
 export function PageHero({ config, className = '' }: PageHeroProps) {
   const { background, content } = config;
 
-  const overlayStyle = 'from-slate-950/85 via-slate-950/70 to-slate-950/85';
+  const overlayStyle = 'from-slate-950/90 via-slate-950/70 to-slate-950/90';
 
   return (
     <section
@@ -60,7 +60,7 @@ export function PageHero({ config, className = '' }: PageHeroProps) {
     >
       <HeroBackground type={background.type} src={background.src} images={background.images} poster={background.poster} decoration={background.decoration} />
 
-      <div className={`absolute inset-0 bg-gradient-to-br ${overlayStyle}`} />
+      <div className={`absolute inset-0 bg-gradient-to-br backdrop-blur-[4px] ${overlayStyle}`} />
 
       <div
         className="absolute inset-0 opacity-[0.06] backdrop-blur-[2px]"

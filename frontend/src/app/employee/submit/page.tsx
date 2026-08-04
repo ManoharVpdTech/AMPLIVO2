@@ -19,6 +19,26 @@ function extractErrorMessage(err: unknown): string {
   return 'Something went wrong. Please try again.';
 }
 
+// Maps a failed file-upload request to a concrete, actionable message instead
+// of a raw Axios/network error string.
+function extractUploadErrorMessage(err: unknown): string {
+  if (isAxiosError<{ message?: string; detail?: string }>(err)) {
+    if (!err.response) {
+      return 'Server unavailable. Please check your connection and try again.';
+    }
+    const status = err.response.status;
+    const serverMessage = err.response.data?.message || err.response.data?.detail;
+    if (status === 401 || status === 403) return 'Permission denied. You do not have access to upload this file.';
+    if (status === 404) return 'Upload failed. The destination folder could not be found.';
+    if (status === 413) return 'Invalid file. The file is too large to upload.';
+    if (status === 415) return 'Unsupported file. Please choose a different file type.';
+    if (status === 400 || status === 422) return serverMessage || 'Invalid file. Please check the file and try again.';
+    if (status >= 500) return 'Server unavailable. Please try again shortly.';
+    return serverMessage || 'Upload failed. Please try again.';
+  }
+  return 'Upload failed. Please try again.';
+}
+
 // Deliverables are expected to live on one of these platforms - anything
 // else is rejected up front instead of being silently accepted and only
 // failing (or worse, half-working) once a CRM reviewer opens the link.
@@ -60,7 +80,7 @@ export default function EmployeeSubmitWork({ searchParams }: { searchParams: Pro
   const projectId = resolvedParams.projectId as string | undefined;
   const subId = resolvedParams.id as string | undefined;
 
-  const { activeEmployeeId, getTasksByEmployee, getProjectsByEmployee, submissions, submitToCRM, resubmitToCRM, fetchAllData, dataLoaded } = useCrmStore();
+  const { activeEmployeeId, getTasksByEmployee, submissions, submitToCRM, resubmitToCRM, fetchAllData, dataLoaded } = useCrmStore();
 
   const existingSub = subId ? submissions.find(s => s.id === subId) : undefined;
   const isRevision = !!existingSub;
@@ -70,7 +90,6 @@ export default function EmployeeSubmitWork({ searchParams }: { searchParams: Pro
   const [taskSubmissions, setTaskSubmissions] = useState<TaskSubmissionHistoryItem[]>([]);
 
   const selectedTask = tasks.find(t => t.id === selectedTaskId);
-  const project = getProjectsByEmployee(activeEmployeeId || '').find(p => p.id === selectedTask?.projectId);
 
   const [title, setTitle] = useState(existingSub?.title || '');
   const [workSummary, setWorkSummary] = useState(existingSub?.workSummary || '');
@@ -125,7 +144,7 @@ export default function EmployeeSubmitWork({ searchParams }: { searchParams: Pro
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedTask || !project || isSubmitting) return;
+    if (!selectedTask || isSubmitting) return;
 
     setSubmitError(null);
 
@@ -151,9 +170,9 @@ export default function EmployeeSubmitWork({ searchParams }: { searchParams: Pro
       } else {
         await submitToCRM({
           employeeId: activeEmployeeId!,
-          projectId: project.id,
+          projectId: selectedTask.projectId,
           taskId: selectedTask.id,
-          clientId: project.clientId,
+          clientId: selectedTask.clientId,
           service: selectedTask.service,
           assignedRole: selectedTask.assignedRole,
           title,
@@ -179,7 +198,7 @@ export default function EmployeeSubmitWork({ searchParams }: { searchParams: Pro
           });
         } catch (uploadErr) {
           console.error("Failed to upload/attach file:", uploadErr);
-          useToastStore.getState().showToast('Submission succeeded, but file upload failed.', 'error');
+          useToastStore.getState().showToast(`Submission succeeded, but ${extractUploadErrorMessage(uploadErr).toLowerCase()}`, 'error');
         }
       }
 
@@ -188,8 +207,9 @@ export default function EmployeeSubmitWork({ searchParams }: { searchParams: Pro
       // Pull the real, backend-computed task status/progress (the backend
       // sets status='submitted' and progress=completion_percentage) so the
       // Employee Dashboard reflects the submission immediately instead of
-      // waiting for the next unrelated navigation to refetch.
-      fetchAllData();
+      // waiting for the next unrelated navigation to refetch. skipFinance:
+      // true - see employee/layout.tsx for why.
+      fetchAllData({ skipFinance: true });
     } catch (err) {
       setSubmitError(extractErrorMessage(err));
     } finally {
@@ -437,7 +457,7 @@ export default function EmployeeSubmitWork({ searchParams }: { searchParams: Pro
             </Link>
             <button
               type="submit"
-              disabled={isSubmitting || !selectedTask || !project}
+              disabled={isSubmitting || !selectedTask}
               className="px-6 py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors shadow-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <UploadCloud size={16} /> {isSubmitting ? 'Submitting...' : isRevision ? "Resubmit to CRM" : "Submit to CRM"}

@@ -105,10 +105,29 @@ export function PortalSidebar() {
   const { user, logout, refreshToken } = useAuthStore();
   const { activeCampaigns, pendingCreatives, unreadMessages, accountManager } = useSidebarData();
   const { isSidebarOpen, setSidebarOpen } = useUiStore();
+  const [lastSeenCampaigns, setLastSeenCampaigns] = useState(0);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('lastSeenCampaigns');
+      if (stored) setLastSeenCampaigns(parseInt(stored, 10));
+    }
+  }, []);
+
+  useEffect(() => {
+    if (pathname === '/portal/campaigns' && activeCampaigns > 0) {
+      setLastSeenCampaigns(activeCampaigns);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('lastSeenCampaigns', activeCampaigns.toString());
+      }
+    }
+  }, [pathname, activeCampaigns]);
+
+  const newCampaigns = Math.max(0, activeCampaigns - lastSeenCampaigns);
 
   const navItems = [
     { icon: LayoutDashboard, label: 'Dashboard', href: '/portal' },
-    { icon: Megaphone, label: 'Campaigns', href: '/portal/campaigns', badge: activeCampaigns > 0 ? String(activeCampaigns) : undefined },
+    { icon: Megaphone, label: 'Campaigns', href: '/portal/campaigns', badge: newCampaigns > 0 ? String(newCampaigns) : undefined },
     { icon: ImageIcon, label: 'Creative Approval', href: '/portal/creatives', badge: pendingCreatives > 0 ? String(pendingCreatives) : undefined },
     { icon: TrendingUp, label: 'Leads', href: '/portal/leads' },
     { icon: FolderKanban, label: 'Projects & Tasks', href: '/portal/projects' },

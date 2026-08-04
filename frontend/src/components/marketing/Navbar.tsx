@@ -63,12 +63,12 @@ export function Navbar({ alwaysSolid = false }: NavbarProps) {
           : 'bg-[#1a0540]/60 backdrop-blur-md border-b border-white/10'
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-[88px] flex items-center justify-between gap-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 lg:py-0 min-h-[88px] flex flex-wrap items-center justify-between gap-2 lg:gap-4">
         {/* Logo */}
         <Logo variant={isSolid ? 'dark' : 'white'} size="md" />
 
-        {/* Desktop Nav */}
-        <nav className="hidden xl:flex items-center gap-2" aria-label="Primary">
+        {/* Navigation Bar (Always Visible) */}
+        <nav className="flex w-full order-last mt-3 lg:mt-0 lg:w-auto lg:order-none overflow-x-auto scrollbar-hide items-center gap-1 xl:gap-2 pb-2 lg:pb-0" aria-label="Primary">
           {navLinks.map((link) => {
             const linkActive = isActive(link.href);
             const hasActiveChild = link.children?.some((c) => isActive(c.href));
@@ -76,16 +76,22 @@ export function Navbar({ alwaysSolid = false }: NavbarProps) {
             return (
               <div
                 key={link.label}
-                className="relative"
+                className="relative shrink-0"
                 onMouseEnter={() => link.children && setActiveDropdown(link.label)}
                 onMouseLeave={() => setActiveDropdown(null)}
               >
                 <Link
                   href={link.href}
+                  onClick={(e) => {
+                    if (link.href === '/' && pathname === '/') {
+                      e.preventDefault();
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
+                  }}
                   aria-current={linkActive ? 'page' : undefined}
                   aria-haspopup={link.children ? 'true' : undefined}
                   aria-expanded={link.children ? dropdownOpen : undefined}
-                  className={`flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  className={`flex items-center gap-0.5 xl:gap-1 px-2.5 xl:px-3 py-1.5 xl:py-2 rounded-lg text-xs xl:text-sm font-medium transition-colors whitespace-nowrap ${
                     isSolid
                       ? linkActive || hasActiveChild
                         ? 'text-[#4C1D95] font-bold bg-[#4C1D95]/5'
@@ -100,7 +106,7 @@ export function Navbar({ alwaysSolid = false }: NavbarProps) {
                 </Link>
 
                 {(linkActive || hasActiveChild) && (
-                  <span className={`absolute bottom-0 left-2.5 right-2.5 xl:left-3 xl:right-3 h-0.5 rounded-full ${isSolid ? 'bg-[#4C1D95]' : 'bg-white'}`} />
+                  <span className={`absolute bottom-0 left-2 right-2 xl:left-3 xl:right-3 h-0.5 rounded-full ${isSolid ? 'bg-[#4C1D95]' : 'bg-white'}`} />
                 )}
 
                 {/* Dropdown */}
@@ -128,10 +134,10 @@ export function Navbar({ alwaysSolid = false }: NavbarProps) {
         </nav>
 
         {/* Right CTAs */}
-        <div className="hidden lg:flex items-center gap-3 xl:gap-4">
+        <div className="flex items-center gap-2 xl:gap-4 shrink-0">
           <Link
             href="/login"
-            className={`text-xs xl:text-sm font-medium px-4 xl:px-5 py-2 xl:py-2.5 rounded-xl border transition-all ${isSolid
+            className={`text-xs xl:text-sm font-medium px-3.5 xl:px-5 py-2 xl:py-2.5 rounded-xl border transition-all whitespace-nowrap ${isSolid
               ? 'border-slate-200 text-slate-700 hover:border-[#4C1D95] hover:text-[#4C1D95]'
               : 'border-white/30 text-white hover:bg-white/10'
               }`}
@@ -139,22 +145,11 @@ export function Navbar({ alwaysSolid = false }: NavbarProps) {
             Client Login
           </Link>
         </div>
-
-        {/* Mobile Hamburger */}
-        <button
-          onClick={() => setMobileOpen(!mobileOpen)}
-          aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
-          aria-expanded={mobileOpen}
-          aria-controls="mobile-nav-menu"
-          className={`xl:hidden p-2 rounded-lg transition-colors ${isSolid ? 'text-slate-700' : 'text-white'}`}
-        >
-          {mobileOpen ? <X size={22} aria-hidden="true" /> : <Menu size={22} aria-hidden="true" />}
-        </button>
       </div>
 
       {/* Mobile Menu */}
       {mobileOpen && (
-        <div id="mobile-nav-menu" className="xl:hidden bg-white border-t border-slate-100 shadow-lg max-h-[80vh] overflow-y-auto" aria-label="Mobile">
+        <div id="mobile-nav-menu" className="lg:hidden bg-white border-t border-slate-100 shadow-lg max-h-[80vh] overflow-y-auto" aria-label="Mobile">
           <div className="px-4 py-4 space-y-1">
             {navLinks.map((link) => {
               const linkActive = isActive(link.href);
@@ -210,3 +205,4 @@ export function Navbar({ alwaysSolid = false }: NavbarProps) {
     </header>
   );
 }
+

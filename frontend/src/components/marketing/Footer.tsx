@@ -16,7 +16,6 @@ const footerLinks = {
     { label: 'Case Studies', href: '/case-studies' },
     { label: 'Insights Blog', href: '/insights' },
     { label: 'Careers', href: '/careers' },
-    { label: 'Press', href: '#' },
   ],
   Industries: [
     { label: 'Real Estate', href: '/industries' },
@@ -48,11 +47,11 @@ export function Footer() {
   return (
     <footer className="bg-[#0A0F1E] text-white">
       {/* Main Footer */}
-      <div className="max-w-7xl mx-auto px-6 py-10">
-        <div className="grid lg:grid-cols-6 gap-8 mb-8">
+      <div className="max-w-7xl mx-auto px-6 py-6 md:py-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-x-8 gap-y-10 mb-6">
           {/* Brand Column */}
-          <div className="lg:col-span-2">
-            <div className="flex items-center gap-2.5 mb-6">
+          <div className="col-span-1 sm:col-span-2 lg:col-span-2">
+            <div className="flex items-center gap-2 mb-4">
               <div className="w-9 h-9 rounded-xl bg-[#4C1D95] flex items-center justify-center">
                 <Zap size={18} className="text-white" />
               </div>
@@ -60,15 +59,15 @@ export function Footer() {
                 Amplivo
               </span>
             </div>
-            <p className="text-[#94A3B8] text-sm leading-relaxed mb-6">
+            <p className="text-slate-300 text-sm leading-relaxed mb-4">
               Amplivo Digital Growth Private Limited — A premium digital marketing agency transforming growth ambitions into measurable business results.
             </p>
-            <div className="space-y-2.5 mb-6">
-              <div className="flex items-start gap-2.5 text-sm text-slate-400">
+            <div className="space-y-2 mb-4">
+              <div className="flex items-start gap-2.5 text-sm text-slate-300">
                 <MapPin size={14} className="mt-0.5 flex-shrink-0 text-[#a78bfa]" />
                 <span>Hi-Tech City, Hyderabad, Telangana 500081</span>
               </div>
-              <div className="flex items-center gap-2.5 text-sm text-slate-400">
+              <div className="flex items-center gap-2.5 text-sm text-slate-300">
                 <Mail size={14} className="flex-shrink-0 text-[#a78bfa]" />
                 <a href="mailto:hello@amplivo.in" className="hover:text-[#06B6D4] transition-colors">hello@amplivo.in</a>
               </div>
@@ -98,13 +97,13 @@ export function Footer() {
           {/* Link Columns */}
           {Object.entries(footerLinks).map(([heading, links]) => (
             <div key={heading}>
-              <h4 className="text-white font-semibold mb-4 text-sm">{heading}</h4>
-              <ul className="space-y-2.5">
+              <h4 className="text-white font-semibold mb-3 text-sm">{heading}</h4>
+              <ul className="space-y-1.5">
                 {links.map((link) => (
                   <li key={link.label}>
                     <Link
                       href={link.href}
-                      className="text-slate-400 text-sm hover:text-[#06B6D4] hover:translate-x-1 flex items-center transition-all duration-300 transform"
+                      className="text-slate-300 text-sm hover:text-[#06B6D4] hover:translate-x-1 flex items-center transition-all duration-300 transform"
                     >
                       {link.label}
                     </Link>
@@ -116,25 +115,25 @@ export function Footer() {
         </div>
 
         {/* Office Locations */}
-        <div className="border-t border-[#1F2937] pt-6 mb-6">
-          <div className="grid lg:grid-cols-3 gap-8 items-start">
+        <div className="border-t border-[#1F2937] pt-6 mb-4">
+          <div className="grid lg:grid-cols-3 gap-6 items-start">
             <div className="lg:col-span-2">
-              <h4 className="text-white font-semibold mb-5 text-sm uppercase tracking-wider">Our Offices</h4>
-              <div className="grid grid-cols-2 gap-6">
+              <h4 className="text-white font-semibold mb-3 text-sm uppercase tracking-wider">Our Offices</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {offices.map((office) => (
                   <div key={office.city} className="flex items-start gap-2.5">
                     <MapPin size={14} className="text-[#a78bfa] mt-0.5 flex-shrink-0" />
                     <div>
                       <div className="text-white text-sm font-semibold">{office.city}</div>
-                      <div className="text-slate-400 text-xs mt-1 leading-relaxed">{office.address}</div>
+                      <div className="text-slate-300 text-xs mt-1 leading-relaxed">{office.address}</div>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
             <div>
-              <h4 className="text-white font-semibold mb-5 text-sm uppercase tracking-wider">Hyderabad HQ Map</h4>
-              <div className="w-full h-44 rounded-2xl overflow-hidden border border-[#1F2937] relative">
+              <h4 className="text-white font-semibold mb-3 text-sm uppercase tracking-wider">Hyderabad HQ Map</h4>
+              <div className="w-full h-32 rounded-2xl overflow-hidden border border-[#1F2937] relative">
                 <iframe
                   src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3806.4025875225114!2d78.3807217!3d17.4447475!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bcb9158f201b9ad%3A0x6bfe30c0a4e768e1!2sHitech%20City%2C%20Hyderabad%2C%20Telangana!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
                   width="100%"
@@ -151,12 +150,12 @@ export function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-[#1F2937] pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-[#4B5563] text-sm">
+        <div className="border-t border-[#1F2937] pt-4 flex flex-col md:flex-row items-center justify-between gap-4">
+          <p className="text-slate-400 text-sm">
             © 2024 Amplivo Digital Growth Private Limited. All rights reserved.
 
           </p>
-          <div className="flex flex-wrap gap-x-6 gap-y-2 text-[#4B5563] text-sm">
+          <div className="flex flex-wrap gap-x-6 gap-y-2 text-slate-400 text-sm">
             {[
               { label: 'Privacy Policy', href: '/privacy-policy' },
               { label: 'Terms of Service', href: '/terms-of-service' },

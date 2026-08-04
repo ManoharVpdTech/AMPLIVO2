@@ -1,4 +1,4 @@
-'use client';
+import { useState } from 'react';
 import { getInitials } from '@/lib/utils';
 
 interface AvatarProps {
@@ -16,13 +16,15 @@ const sizeMap = {
 };
 
 export function Avatar({ name, image, size = 'sm', className = '' }: AvatarProps) {
+  const [imgError, setImgError] = useState(false);
   const sizeClass = sizeMap[size];
 
-  if (image) {
+  if (image && !imgError) {
     return (
       <img
         src={image}
-        alt={name}
+        alt={name || 'Avatar'}
+        onError={() => setImgError(true)}
         className={`${sizeClass} rounded-full object-cover flex-shrink-0 ${className}`}
       />
     );
@@ -30,9 +32,9 @@ export function Avatar({ name, image, size = 'sm', className = '' }: AvatarProps
 
   return (
     <div
-      className={`${sizeClass} rounded-full bg-[#4C1D95] flex items-center justify-center flex-shrink-0 ${className}`}
+      className={`${sizeClass} rounded-full bg-[#4C1D95] text-white flex items-center justify-center flex-shrink-0 font-bold select-none ${className}`}
     >
-      <span className="text-white font-bold">{getInitials(name)}</span>
+      <span>{getInitials(name)}</span>
     </div>
   );
 }

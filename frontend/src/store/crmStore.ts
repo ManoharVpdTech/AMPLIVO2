@@ -44,7 +44,7 @@ interface CrmState {
   theme: 'light' | 'dark' | 'system';
 
   // ─── API Actions ─────────────────────────────────────────────────────────
-  fetchAllData: () => Promise<void>;
+  fetchAllData: (opts?: { skipFinance?: boolean }) => Promise<void>;
   fetchLeads: () => Promise<void>;
   fetchClients: () => Promise<void>;
   fetchProjects: () => Promise<void>;
@@ -578,7 +578,7 @@ export const useCrmStore = create<CrmState>()(
       theme: 'system',
 
       // ─── API FETCH ACTIONS ────────────────────────────────────────────────
-      fetchAllData: async () => {
+      fetchAllData: async (opts) => {
         set({ isLoading: true });
         try {
           // Leads then clients (clients needs mapped leads for contact-name/
@@ -615,12 +615,18 @@ export const useCrmStore = create<CrmState>()(
           // and project team avatars ran on MOCK_EMPLOYEES forever.
           await get().fetchEmployees();
 
-          // Invoices need mapped clients/leads for name resolution; clients
-          // is re-fetched once more afterward so totalContractValue reflects
-          // the now-loaded invoices instead of always reading as 0.
-          await get().fetchInvoices();
-          await get().fetchClients();
-          await get().fetchPayments();
+          // Invoices/payments are finance-role-gated on the backend (GET
+          // /finance/payments requires the "finance" role) and are never
+          // rendered anywhere in the Employee portal, so skip them there
+          // instead of firing requests that always come back 403.
+          if (!opts?.skipFinance) {
+            // Invoices need mapped clients/leads for name resolution; clients
+            // is re-fetched once more afterward so totalContractValue reflects
+            // the now-loaded invoices instead of always reading as 0.
+            await get().fetchInvoices();
+            await get().fetchClients();
+            await get().fetchPayments();
+          }
         } catch {
           set({ isLoading: false });
         }
