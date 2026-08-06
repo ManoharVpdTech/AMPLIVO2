@@ -89,6 +89,7 @@ export default function SalesNotificationsPage() {
         actions={
           counts.Unread > 0 ? (
             <button
+              type="button"
               onClick={handleMarkAllRead}
               className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors"
             >
@@ -102,6 +103,7 @@ export default function SalesNotificationsPage() {
         <div className="flex gap-1.5">
           {(['New Enquiries', 'All', 'Unread'] as FilterTab[]).map((t) => (
             <button
+              type="button"
               key={t}
               onClick={() => setTab(t)}
               className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border ${
@@ -121,16 +123,18 @@ export default function SalesNotificationsPage() {
         </div>
 
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          {loading ? (
+          {loading && (
             <div className="py-16 text-center text-slate-400 text-sm">Loading...</div>
-          ) : filtered.length === 0 ? (
+          )}
+          {!loading && filtered.length === 0 && (
             <div className="py-16 text-center">
               <Bell size={32} className="text-slate-200 mx-auto mb-3" />
               <p className="text-slate-400 text-sm">
                 {tab === 'New Enquiries' ? 'No new contact-form enquiries yet.' : 'No notifications here.'}
               </p>
             </div>
-          ) : (
+          )}
+          {!loading && filtered.length > 0 && (
             <div className="divide-y divide-slate-100">
               {filtered.map((n) => {
                 const { Icon, cls } = iconFor(n);
@@ -154,6 +158,7 @@ export default function SalesNotificationsPage() {
                       <p className="text-sm text-slate-500 mt-0.5">{n.message}</p>
                       {!n.is_read && (
                         <button
+                          type="button"
                           onClick={() => handleMarkRead(n.id)}
                           className="mt-2 text-xs font-semibold text-[#4C1D95] hover:underline"
                         >

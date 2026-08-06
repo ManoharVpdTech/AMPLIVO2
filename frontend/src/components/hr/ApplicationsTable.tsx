@@ -21,9 +21,9 @@ export function ApplicationsTable({ applications }: ApplicationsTableProps) {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
 
-  const positions = useMemo(() => Array.from(new Set(applications.map(a => a.jobTitle))).sort(), [applications]);
-  const departments = useMemo(() => Array.from(new Set(applications.map(a => a.department))).sort(), [applications]);
-  const locations = useMemo(() => Array.from(new Set(applications.map(a => a.location).filter(Boolean))).sort(), [applications]);
+  const positions = useMemo(() => Array.from(new Set(applications.map(a => a.jobTitle))).sort((a, b) => a.localeCompare(b)), [applications]);
+  const departments = useMemo(() => Array.from(new Set(applications.map(a => a.department))).sort((a, b) => a.localeCompare(b)), [applications]);
+  const locations = useMemo(() => Array.from(new Set(applications.map(a => a.location).filter(Boolean) as string[])).sort((a, b) => a.localeCompare(b)), [applications]);
 
   const activeFilterCount = [
     statusFilter !== 'All',
@@ -73,6 +73,7 @@ export function ApplicationsTable({ applications }: ApplicationsTableProps) {
           />
         </div>
         <button
+          type="button"
           onClick={() => setFiltersOpen(!filtersOpen)}
           aria-expanded={filtersOpen}
           className={`flex items-center gap-2 px-4 py-2 border rounded-xl text-sm font-medium transition-colors ${
@@ -94,8 +95,9 @@ export function ApplicationsTable({ applications }: ApplicationsTableProps) {
       {filtersOpen && (
         <div className="p-4 border-b border-slate-200 bg-white flex flex-wrap items-end gap-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Status</label>
+            <label htmlFor="filter-app-status" className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Status</label>
             <select
+              id="filter-app-status"
               value={statusFilter}
               onChange={e => setStatusFilter(e.target.value as 'All' | ApplicationStatus)}
               className="px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#4C1D95]/20 focus:border-[#4C1D95] min-w-[140px]"
@@ -105,8 +107,9 @@ export function ApplicationsTable({ applications }: ApplicationsTableProps) {
             </select>
           </div>
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Applied Position</label>
+            <label htmlFor="filter-app-position" className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Applied Position</label>
             <select
+              id="filter-app-position"
               value={positionFilter}
               onChange={e => setPositionFilter(e.target.value)}
               className="px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#4C1D95]/20 focus:border-[#4C1D95] min-w-[160px]"
@@ -116,8 +119,9 @@ export function ApplicationsTable({ applications }: ApplicationsTableProps) {
             </select>
           </div>
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Department</label>
+            <label htmlFor="filter-app-dept" className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Department</label>
             <select
+              id="filter-app-dept"
               value={departmentFilter}
               onChange={e => setDepartmentFilter(e.target.value)}
               className="px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#4C1D95]/20 focus:border-[#4C1D95] min-w-[140px]"
@@ -127,8 +131,9 @@ export function ApplicationsTable({ applications }: ApplicationsTableProps) {
             </select>
           </div>
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Location</label>
+            <label htmlFor="filter-app-location" className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Location</label>
             <select
+              id="filter-app-location"
               value={locationFilter}
               onChange={e => setLocationFilter(e.target.value)}
               className="px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#4C1D95]/20 focus:border-[#4C1D95] min-w-[140px]"
@@ -138,8 +143,9 @@ export function ApplicationsTable({ applications }: ApplicationsTableProps) {
             </select>
           </div>
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Applied From</label>
+            <label htmlFor="filter-app-date-from" className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Applied From</label>
             <input
+              id="filter-app-date-from"
               type="date"
               value={dateFrom}
               onChange={e => setDateFrom(e.target.value)}
@@ -147,8 +153,9 @@ export function ApplicationsTable({ applications }: ApplicationsTableProps) {
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Applied To</label>
+            <label htmlFor="filter-app-date-to" className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Applied To</label>
             <input
+              id="filter-app-date-to"
               type="date"
               value={dateTo}
               onChange={e => setDateTo(e.target.value)}
@@ -157,6 +164,7 @@ export function ApplicationsTable({ applications }: ApplicationsTableProps) {
           </div>
           {activeFilterCount > 0 && (
             <button
+              type="button"
               onClick={clearFilters}
               className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-slate-500 hover:text-rose-600 transition-colors"
             >
@@ -164,6 +172,7 @@ export function ApplicationsTable({ applications }: ApplicationsTableProps) {
             </button>
           )}
           <button
+            type="button"
             onClick={() => setFiltersOpen(false)}
             className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-slate-500 hover:text-slate-700 transition-colors ml-auto"
           >

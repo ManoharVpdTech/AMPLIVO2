@@ -8,25 +8,31 @@ import { useCrmStore } from '@/store/crmStore';
 import { useToastStore } from '@/store/toastStore';
 import type { SubmissionStatus } from '@/types/crm';
 
-const STATUS_TABS: { label: string; value: SubmissionStatus | 'All' }[] = [
+function getCrmStatusBadgeClass(status: string): string {
+  if (status === 'CRM_APPROVED') return 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+  if (status === 'CRM_CHANGES_REQUESTED') return 'bg-red-500/10 text-red-400 border border-red-500/20';
+  return 'bg-amber-500/10 text-amber-400 border border-amber-500/20';
+}
+
+const STATUS_TABS: { label: string; value: string }[] = [
   { label: 'All', value: 'All' },
-  { label: 'Pending Review', value: 'PENDING_CRM_REVIEW' },
-  { label: 'Changes Requested', value: 'CRM_CHANGES_REQUESTED' },
+  { label: 'Awaiting Review', value: 'PENDING_CRM_REVIEW' },
   { label: 'Approved', value: 'CRM_APPROVED' },
+  { label: 'Changes Requested', value: 'CRM_CHANGES_REQUESTED' },
 ];
 
 export default function CrmSubmissionsPage() {
   const { submissions, tasks, employees, getProjectById, approveSubmission, requestSubmissionChanges } = useCrmStore();
-  const showToast = useToastStore((s) => s.showToast);
+  const { showToast } = useToastStore();
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<SubmissionStatus | 'All'>('PENDING_CRM_REVIEW');
+  const [statusFilter, setStatusFilter] = useState<string>('All');
   const [busyId, setBusyId] = useState<string | null>(null);
 
   const handleApprove = async (submissionId: string) => {
     setBusyId(submissionId);
     try {
       await approveSubmission(submissionId);
-      showToast('Submission approved.', 'success');
+      showToast('Submission approved! Status updated on the task and project.', 'success');
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Failed to approve submission.', 'error');
     } finally {
@@ -52,7 +58,7 @@ export default function CrmSubmissionsPage() {
     return submissions
       .filter(s => {
         const task = tasks.find(t => t.id === s.taskId);
-        const project = getProjectById(s.projectId);
+        const project = s.projectId ? getProjectById(s.projectId) : undefined;
         const employee = employees.find(e => e.id === s.employeeId);
         const q = search.toLowerCase();
         const matchSearch = !q
@@ -86,6 +92,7 @@ export default function CrmSubmissionsPage() {
         <div className="flex gap-2 bg-[#12141f] p-1 rounded-lg border border-white/5 overflow-x-auto scrollbar-hide">
           {STATUS_TABS.map(tab => (
             <button
+              type="button"
               key={tab.value}
               onClick={() => setStatusFilter(tab.value)}
               className={`shrink-0 px-4 py-2 rounded-md text-sm font-medium transition-all ${
@@ -120,7 +127,7 @@ export default function CrmSubmissionsPage() {
           <div className="divide-y divide-white/5">
             {filtered.map(sub => {
               const task = tasks.find(t => t.id === sub.taskId);
-              const project = getProjectById(sub.projectId);
+              const project = sub.projectId ? getProjectById(sub.projectId) : undefined;
               const employee = employees.find(e => e.id === sub.employeeId);
               const latest = sub.versions[0];
               const isPending = sub.currentStatus === 'PENDING_CRM_REVIEW';
@@ -131,12 +138,8 @@ export default function CrmSubmissionsPage() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         <h3 className="font-semibold text-white">{sub.title}</h3>
-                        <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${
-                          sub.currentStatus === 'CRM_APPROVED' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
-                          sub.currentStatus === 'CRM_CHANGES_REQUESTED' ? 'bg-red-500/10 text-red-400 border border-red-500/20' :
-                          'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                        }`}>
-                          {sub.currentStatus.replace(/_/g, ' ')}
+                        <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${getCrmStatusBadgeClass(sub.currentStatus)}`}>
+                          {sub.currentStatus.replaceAll('_', ' ')}
                         </span>
                       </div>
                       <p className="text-xs text-slate-500 mt-1">
@@ -167,6 +170,7 @@ export default function CrmSubmissionsPage() {
                     {isPending && (
                       <div className="flex items-center gap-2 shrink-0">
                         <button
+                          type="button"
                           onClick={() => handleApprove(sub.id)}
                           disabled={busyId === sub.id}
                           className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white transition-colors"
@@ -174,6 +178,7 @@ export default function CrmSubmissionsPage() {
                           <CheckCircle className="w-3.5 h-3.5" /> Approve
                         </button>
                         <button
+                          type="button"
                           onClick={() => handleRequestChanges(sub.id)}
                           disabled={busyId === sub.id}
                           className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-lg bg-red-600/80 hover:bg-red-500 disabled:opacity-50 text-white transition-colors"

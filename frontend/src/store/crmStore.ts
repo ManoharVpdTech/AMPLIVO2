@@ -7,8 +7,7 @@ import {
   ProjectStatus, ProjectPriority,
 } from '@/types/crm';
 import { leadService } from '@/services/leadService';
-import { clientService, projectService, taskService, taskSubmissionService, notificationService, financeService } from '@/services/crmService';
-import { userManagementService } from '@/services/crmService';
+import { clientService, projectService, taskService, taskSubmissionService, notificationService, financeService, userManagementService } from '@/services/crmService';
 import { useAuthStore } from './authStore';
 import { SalesLeadStatus } from '@/types';
 import { MOCK_LEADS, MOCK_CLIENTS, MOCK_PROJECTS, MOCK_TASKS, MOCK_EMPLOYEES } from './mockCrmData';
@@ -407,7 +406,7 @@ const mapBackendClient = (raw: Record<string, any>, leads: CrmLead[], invoices: 
     // client's projects' assignedEmployeeIds instead of this field.
     assignedEmployees: [],
     status: mapBackendClientStatus(raw),
-    paymentStatus: hasFinalPaid ? 'Fully Paid' : hasAdvancePaid ? 'Advance Paid' : 'Pending',
+    paymentStatus: hasFinalPaid ? 'Fully Paid' : (hasAdvancePaid ? 'Advance Paid' : 'Pending'),
     startDate: String(raw.onboarding_date || raw.created_at || '').slice(0, 10),
     renewalDate: '',
     createdAt: raw.created_at || new Date().toISOString(),
@@ -440,7 +439,7 @@ const mapBackendInvoice = (raw: Record<string, any>, clients: CrmClient[], leads
   const lead = leads.find(l => l.id === raw.lead_id);
   const clientName = client
     ? (`${client.firstName} ${client.lastName}`.trim() || client.company)
-    : lead ? `${lead.salesLead.firstName} ${lead.salesLead.lastName}`.trim() : '';
+    : (lead ? `${lead.salesLead.firstName} ${lead.salesLead.lastName}`.trim() : '');
   const subtotal = raw.subtotal ?? 0;
   const taxTotal = raw.tax_total ?? 0;
   const crmStatus = mapBackendInvoiceStatus(raw);
@@ -461,9 +460,9 @@ const mapBackendInvoice = (raw: Record<string, any>, clients: CrmClient[], leads
     taxRate: subtotal > 0 ? Math.round((taxTotal / subtotal) * 100) : 0,
     taxAmount: taxTotal,
     grandTotal: raw.total_amount ?? 0,
-    advancePercent: raw.invoice_type === 'advance' ? 25 : raw.invoice_type === 'final' ? 75 : 100,
+    advancePercent: raw.invoice_type === 'advance' ? 25 : (raw.invoice_type === 'final' ? 75 : 100),
     advanceDue: raw.total_amount ?? 0,
-    status: crmStatus === 'Advance Paid' ? 'Advance Paid' : crmStatus === 'Fully Paid' ? 'Fully Paid' : crmStatus === 'Draft' ? 'Draft' : 'Sent',
+    status: crmStatus === 'Advance Paid' ? 'Advance Paid' : (crmStatus === 'Fully Paid' ? 'Fully Paid' : (crmStatus === 'Draft' ? 'Draft' : 'Sent')),
     notes: raw.notes || '',
     crmStatus,
     reminderSent: false,

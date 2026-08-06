@@ -9,9 +9,9 @@ import { useAuthStore } from '@/store/authStore';
 
 export default function EmployeeLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   const { theme, activeEmployeeId, setActiveEmployee, fetchAllData, fetchEmployees } = useCrmStore();
   const user = useAuthStore(state => state.user);
   const [mounted, setMounted] = useState(false);
@@ -46,15 +46,15 @@ export default function EmployeeLayout({
   return (
     <ProtectedRoute allowedRoles={['admin', 'employee']}>
       {isDark && (
-        <style dangerouslySetInnerHTML={{__html: `
+        <style dangerouslySetInnerHTML={{__html: String.raw`
           .bg-white { background-color: #1e293b !important; }
-          .bg-\\[\\#F8FAFC\\] { background-color: #0f172a !important; }
+          .bg-\[\#F8FAFC\] { background-color: #0f172a !important; }
           .text-slate-900, .text-indigo-900, .text-slate-800 { color: #f8fafc !important; }
           .text-slate-700 { color: #e2e8f0 !important; }
           .text-slate-500, .text-slate-600 { color: #94a3b8 !important; }
           .border-slate-200, .border-slate-300, .border-indigo-100 { border-color: #334155 !important; }
           .border-slate-100 { border-color: #1e293b !important; }
-          .bg-slate-50, .bg-indigo-50\\/50 { background-color: #1e293b !important; }
+          .bg-slate-50, .bg-indigo-50\/50 { background-color: #1e293b !important; }
           input, select, textarea { 
             background-color: #1e293b !important; 
             color: #f8fafc !important; 

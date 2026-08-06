@@ -4,7 +4,7 @@ import { AdminHeader } from '@/components/admin/AdminSidebar';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { taskService, projectService, userManagementService } from '@/services/crmService';
 import { useToastStore } from '@/store/toastStore';
-import { Search, Plus, X, Loader2, Clock, MoreHorizontal, Trash2, Pencil, ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react';
+import { Search, Plus, X, Loader2, Clock, Trash2, Pencil, AlertCircle } from 'lucide-react';
 
 interface Task {
   id: string;
@@ -225,7 +225,7 @@ export default function AdminTasks() {
                 <option key={p} value={p}>{p}</option>
               ))}
             </select>
-            <button onClick={openCreateModal} className="flex items-center gap-2 px-4 py-2 bg-[#4C1D95] text-white rounded-xl text-sm font-semibold hover:bg-[#3b1574] transition-colors">
+            <button type="button" onClick={openCreateModal} className="flex items-center gap-2 px-4 py-2 bg-[#4C1D95] text-white rounded-xl text-sm font-semibold hover:bg-[#3b1574] transition-colors">
               <Plus size={16} /> New Task
             </button>
           </div>
@@ -235,6 +235,7 @@ export default function AdminTasks() {
           <div className="p-4 border-b border-slate-200 bg-slate-50 flex items-center gap-4 overflow-x-auto">
             {STATUS_TABS.map((tab) => (
               <button
+                type="button"
                 key={tab}
                 onClick={() => setStatusFilter(tab)}
                 className={`text-sm px-2 py-1 transition-colors whitespace-nowrap ${
@@ -246,13 +247,15 @@ export default function AdminTasks() {
             ))}
           </div>
 
-          {loading ? (
+          {loading && (
             <div className="flex items-center justify-center py-20">
               <Loader2 size={32} className="animate-spin text-[#4C1D95]" />
             </div>
-          ) : tasks.length === 0 ? (
+          )}
+          {!loading && tasks.length === 0 && (
             <div className="text-center py-20 text-slate-400 text-sm">No tasks found.</div>
-          ) : (
+          )}
+          {!loading && tasks.length > 0 && (
             <div className="divide-y divide-slate-100">
               {tasks.map((task) => (
                 <div key={task.id} className="p-4 hover:bg-slate-50 transition-colors flex items-center gap-4 group">
@@ -277,10 +280,10 @@ export default function AdminTasks() {
                   </div>
 
                   <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => openEditModal(task)} className="p-1.5 text-slate-400 hover:text-[#4C1D95] hover:bg-[#4C1D95]/10 rounded-lg transition-colors" title="Edit Task">
+                    <button type="button" onClick={() => openEditModal(task)} className="p-1.5 text-slate-400 hover:text-[#4C1D95] hover:bg-[#4C1D95]/10 rounded-lg transition-colors" title="Edit Task">
                       <Pencil size={15} />
                     </button>
-                    <button onClick={() => setDeleteConfirmId(task.id)} className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" title="Delete Task">
+                    <button type="button" onClick={() => setDeleteConfirmId(task.id)} className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" title="Delete Task">
                       <Trash2 size={15} />
                     </button>
                   </div>
@@ -295,6 +298,7 @@ export default function AdminTasks() {
               <div>Showing {tasks.length} of {totalCount} tasks</div>
               <div className="flex gap-2 items-center">
                 <button
+                  type="button"
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page <= 1}
                   className="px-3 py-1 bg-white border border-slate-200 rounded text-slate-700 hover:bg-slate-50 disabled:text-slate-300 disabled:cursor-not-allowed"
@@ -303,6 +307,7 @@ export default function AdminTasks() {
                 </button>
                 <span className="text-xs text-slate-500 font-medium">Page {page} of {totalPages}</span>
                 <button
+                  type="button"
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page >= totalPages}
                   className="px-3 py-1 bg-white border border-slate-200 rounded text-slate-700 hover:bg-slate-50 disabled:text-slate-300 disabled:cursor-not-allowed"
@@ -317,16 +322,17 @@ export default function AdminTasks() {
 
       {/* New / Edit Task Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="button" tabIndex={0} onClick={() => setShowModal(false)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setShowModal(false); }}>
           <div className="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-center p-6 border-b border-slate-200">
               <h2 className="text-lg font-bold text-slate-900">{editingTask ? 'Edit Task' : 'New Task'}</h2>
-              <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+              <button type="button" onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Title <span className="text-red-500">*</span></label>
+                <label htmlFor="admin-task-title" className="block text-xs font-semibold text-slate-600 mb-1">Title <span className="text-red-500">*</span></label>
                 <input
+                  id="admin-task-title"
                   type="text"
                   value={form.title}
                   onChange={(e) => setForm({ ...form, title: e.target.value })}
@@ -411,8 +417,9 @@ export default function AdminTasks() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Description</label>
+                <label htmlFor="task-description" className="block text-xs font-semibold text-slate-600 mb-1">Description</label>
                 <textarea
+                  id="task-description"
                   rows={3}
                   value={form.description}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
@@ -442,8 +449,8 @@ export default function AdminTasks() {
 
       {/* Delete Confirmation Modal */}
       {deleteConfirmId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-sm w-full space-y-4 border border-slate-200 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="button" tabIndex={0} onClick={() => setDeleteConfirmId(null)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setDeleteConfirmId(null); }}>
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full space-y-4 border border-slate-200 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center gap-3 text-rose-600">
               <AlertCircle size={24} />
               <h3 className="font-bold text-slate-900 text-base">Delete Task</h3>
@@ -451,12 +458,14 @@ export default function AdminTasks() {
             <p className="text-xs text-slate-600">Are you sure you want to delete this task? This action cannot be undone.</p>
             <div className="flex justify-end gap-2 pt-2">
               <button
+                type="button"
                 onClick={() => setDeleteConfirmId(null)}
                 className="px-3 py-1.5 text-xs font-semibold text-slate-600 bg-slate-100 rounded-xl hover:bg-slate-200"
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={() => handleDelete(deleteConfirmId)}
                 className="px-3 py-1.5 text-xs font-semibold text-white bg-rose-600 rounded-xl hover:bg-rose-700"
               >

@@ -8,17 +8,28 @@ interface JobViewModalProps {
   onClose: () => void;
 }
 
-export function JobViewModal({ job, onClose }: JobViewModalProps) {
+export function JobViewModal({ job, onClose }: Readonly<JobViewModalProps>) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <div
+        role="button"
+        tabIndex={0}
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        onClick={onClose}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onClose();
+          }
+        }}
+      />
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg border border-slate-200 animate-fade-in-up max-h-[90vh] overflow-y-auto">
         <div className="flex items-start justify-between p-6 border-b border-slate-100">
           <div>
             <h2 className="font-bold text-slate-900 text-lg" style={{ fontFamily: "'Sora', sans-serif" }}>{job.title}</h2>
             <div className="mt-2"><StatusChip status={job.status} /></div>
           </div>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors flex-shrink-0">
+          <button type="button" onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors flex-shrink-0">
             <X size={18} />
           </button>
         </div>
@@ -66,8 +77,8 @@ export function JobViewModal({ job, onClose }: JobViewModalProps) {
             <div>
               <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Skills Required</div>
               <div className="flex flex-wrap gap-1.5">
-                {job.skillsRequired.map((skill, i) => (
-                  <span key={i} className="px-2.5 py-1 bg-slate-100 text-slate-600 rounded-lg text-xs font-medium">{skill}</span>
+                {job.skillsRequired.map((skill) => (
+                  <span key={skill} className="px-2.5 py-1 bg-slate-100 text-slate-600 rounded-lg text-xs font-medium">{skill}</span>
                 ))}
               </div>
             </div>
@@ -76,6 +87,7 @@ export function JobViewModal({ job, onClose }: JobViewModalProps) {
 
         <div className="px-6 pb-6">
           <button
+            type="button"
             onClick={onClose}
             className="w-full px-4 py-2.5 border border-slate-200 text-slate-700 rounded-xl text-sm font-semibold hover:bg-slate-50 transition-colors"
           >

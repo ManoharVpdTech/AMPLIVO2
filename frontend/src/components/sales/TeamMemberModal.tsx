@@ -31,8 +31,12 @@ function generateUsername(email: string): string {
 
 function generatePassword(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%';
+  const array = new Uint32Array(12);
+  window.crypto.getRandomValues(array);
   let pwd = '';
-  for (let i = 0; i < 12; i++) pwd += chars[Math.floor(Math.random() * chars.length)];
+  for (let i = 0; i < 12; i++) {
+    pwd += chars[array[i] % chars.length];
+  }
   return pwd;
 }
 
@@ -41,7 +45,7 @@ function extractErrorMessage(err: unknown, fallback: string): string {
   return withResponse?.response?.data?.message || withResponse?.response?.data?.detail || fallback;
 }
 
-export function TeamMemberModal({ roles, memberToEdit, onClose, onSaved }: TeamMemberModalProps) {
+export function TeamMemberModal({ roles, memberToEdit, onClose, onSaved }: Readonly<TeamMemberModalProps>) {
   const isEdit = Boolean(memberToEdit);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -103,13 +107,13 @@ export function TeamMemberModal({ roles, memberToEdit, onClose, onSaved }: TeamM
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" role="button" tabIndex={0} onClick={onClose} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClose(); }} />
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md border border-slate-200 animate-fade-in-up max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b border-slate-100">
           <h2 className="font-bold text-slate-900 text-lg" style={{ fontFamily: "'Sora', sans-serif" }}>
             {isEdit ? 'Edit Team Member' : 'Add Team Member'}
           </h2>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors">
+          <button type="button" onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors">
             <X size={18} />
           </button>
         </div>
@@ -123,12 +127,13 @@ export function TeamMemberModal({ roles, memberToEdit, onClose, onSaved }: TeamM
           )}
 
           <div>
-            <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">
+            <label htmlFor="tm-fullname" className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">
               Full Name <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <User size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
+                id="tm-fullname"
                 required
                 type="text"
                 value={fullName}
@@ -139,12 +144,13 @@ export function TeamMemberModal({ roles, memberToEdit, onClose, onSaved }: TeamM
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">
+            <label htmlFor="tm-email" className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">
               Email Address <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <Mail size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
+                id="tm-email"
                 required
                 type="email"
                 disabled={isEdit}
@@ -157,12 +163,13 @@ export function TeamMemberModal({ roles, memberToEdit, onClose, onSaved }: TeamM
 
           {!isEdit && (
             <div>
-              <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">
+              <label htmlFor="tm-username" className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">
                 Username <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <AtSign size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
+                  id="tm-username"
                   required
                   type="text"
                   value={username}
@@ -174,8 +181,9 @@ export function TeamMemberModal({ roles, memberToEdit, onClose, onSaved }: TeamM
           )}
 
           <div>
-            <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Phone Number</label>
+            <label htmlFor="tm-phone" className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Phone Number</label>
             <input
+              id="tm-phone"
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
@@ -185,8 +193,9 @@ export function TeamMemberModal({ roles, memberToEdit, onClose, onSaved }: TeamM
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Role</label>
+            <label htmlFor="tm-role" className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Role</label>
             <select
+              id="tm-role"
               value={roleId}
               onChange={(e) => setRoleId(e.target.value)}
               className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-[#4C1D95]/20 focus:border-[#4C1D95]"
@@ -200,32 +209,35 @@ export function TeamMemberModal({ roles, memberToEdit, onClose, onSaved }: TeamM
             <div>
               <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Status</label>
               <div className="flex gap-2">
-                {[{ v: true, label: 'Active' }, { v: false, label: 'Inactive' }].map((opt) => (
-                  <button
-                    key={String(opt.v)}
-                    type="button"
-                    onClick={() => setIsActive(opt.v)}
-                    className={`flex-1 py-2 rounded-xl border text-xs font-semibold transition-all ${
-                      isActive === opt.v
-                        ? opt.v ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-slate-100 border-slate-300 text-slate-600'
-                        : 'bg-white border-slate-200 text-slate-400 hover:bg-slate-50'
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
+                {[{ v: true, label: 'Active' }, { v: false, label: 'Inactive' }].map((opt) => {
+                  let statusStyle = 'bg-white border-slate-200 text-slate-400 hover:bg-slate-50';
+                  if (isActive === opt.v) {
+                    statusStyle = opt.v ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-slate-100 border-slate-300 text-slate-600';
+                  }
+                  return (
+                    <button
+                      key={String(opt.v)}
+                      type="button"
+                      onClick={() => setIsActive(opt.v)}
+                      className={`flex-1 py-2 rounded-xl border text-xs font-semibold transition-all ${statusStyle}`}
+                    >
+                      {opt.label}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}
 
           {!isEdit && (
             <div>
-              <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">
+              <label htmlFor="tm-password" className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">
                 Temporary Password <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <Lock size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
+                  id="tm-password"
                   required
                   type="text"
                   minLength={8}

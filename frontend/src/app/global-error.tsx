@@ -4,10 +4,10 @@ export const dynamic = 'force-dynamic';
 export default function GlobalError({
   error,
   reset,
-}: {
+}: Readonly<{
   error: Error & { digest?: string };
   reset: () => void;
-}) {
+}>) {
   return (
     <html lang="en">
       <body className="font-inter antialiased">
@@ -19,6 +19,7 @@ export default function GlobalError({
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <button
+              type="button"
               onClick={() => reset()}
               className="rounded-xl bg-[#4C1D95] px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-[#3b1675]"
             >

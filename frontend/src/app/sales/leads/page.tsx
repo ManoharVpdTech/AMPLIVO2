@@ -57,8 +57,8 @@ export default function SalesLeadsPage() {
         const users = Array.isArray(res) ? res : res?.items || [];
         setAssignableMembers(
           users.map((u: Record<string, unknown>) => ({
-            id: String(u.id || ''),
-            name: String(u.full_name || u.name || u.email || 'Unnamed'),
+            id: typeof u.id === 'string' ? u.id : String(u.id ?? ''),
+            name: typeof u.full_name === 'string' ? u.full_name : typeof u.name === 'string' ? u.name : typeof u.email === 'string' ? u.email : 'Unnamed',
           }))
         );
       })
@@ -146,7 +146,7 @@ export default function SalesLeadsPage() {
     ]);
     // Bug 9 fixed: use Blob + URL.createObjectURL so special chars/commas/quotes are handled correctly
     const csvContent = [headers, ...rows]
-      .map(row => row.map(val => `"${String(val).replace(/"/g, '""')}"`).join(','))
+      .map(row => row.map(val => `"${String(val).replaceAll('"', '""')}"`).join(','))
       .join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -155,7 +155,7 @@ export default function SalesLeadsPage() {
     link.download = `leads_export_${new Date().toISOString().split('T')[0]}.csv`;
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
+    link.remove();
     URL.revokeObjectURL(url);
   };
 
@@ -172,6 +172,7 @@ export default function SalesLeadsPage() {
         subtitle="Manage your sales pipeline"
         actions={
           <button
+            type="button"
             onClick={() => setShowAddLeadModal(true)}
             className="flex items-center gap-2 px-4 py-2 bg-[#4C1D95] text-white rounded-xl text-sm font-semibold hover:bg-[#3b1574] transition-colors"
           >
@@ -185,6 +186,7 @@ export default function SalesLeadsPage() {
         <div className="flex gap-1.5 overflow-x-auto pb-1">
           {STATUS_TABS.map((tab) => (
             <button
+              type="button"
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border ${
@@ -228,6 +230,7 @@ export default function SalesLeadsPage() {
               <option value="name">Sort: Name</option>
             </select>
             <button
+              type="button"
               onClick={() => setShowFilterPanel(!showFilterPanel)}
               className={`flex items-center gap-2 px-3 py-2 border text-slate-600 rounded-xl text-sm font-medium hover:bg-slate-50 transition-colors ${
                 showFilterPanel || filterPriority !== 'All' || filterSource !== 'All'
@@ -238,6 +241,7 @@ export default function SalesLeadsPage() {
               <Filter size={14} /> Filter
             </button>
             <button
+              type="button"
               onClick={handleExportCSV}
               className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl text-sm font-medium hover:bg-slate-50 transition-colors"
             >
@@ -250,8 +254,9 @@ export default function SalesLeadsPage() {
         {showFilterPanel && (
           <div className="bg-white border border-slate-200 rounded-2xl p-4 flex flex-wrap gap-4 items-center animate-fade-in-up">
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Priority</label>
+              <label htmlFor="filter-priority" className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Priority</label>
               <select
+                id="filter-priority"
                 value={filterPriority}
                 onChange={(e) => setFilterPriority(e.target.value)}
                 className="px-3 py-1.5 border border-slate-200 rounded-xl text-xs text-slate-700 bg-white focus:outline-none"
@@ -264,8 +269,9 @@ export default function SalesLeadsPage() {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Source</label>
+              <label htmlFor="filter-source" className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Source</label>
               <select
+                id="filter-source"
                 value={filterSource}
                 onChange={(e) => setFilterSource(e.target.value)}
                 className="px-3 py-1.5 border border-slate-200 rounded-xl text-xs text-slate-700 bg-white focus:outline-none"
@@ -281,6 +287,7 @@ export default function SalesLeadsPage() {
               </select>
             </div>
             <button
+              type="button"
               onClick={() => {
                 setFilterPriority('All');
                 setFilterSource('All');
@@ -375,9 +382,9 @@ export default function SalesLeadsPage() {
                         </td>
                         <td className="py-4 px-5">
                           <div className={`flex items-center gap-1 text-xs font-semibold ${PRIORITY_COLOR[lead.priority]}`}>
-                            {lead.priority === 'Critical' ? <AlertCircle size={12} /> :
-                             lead.priority === 'High' ? <TrendingUp size={12} /> :
-                             <Star size={12} />}
+                            {lead.priority === 'Critical' && <AlertCircle size={12} />}
+                            {lead.priority === 'High' && <TrendingUp size={12} />}
+                            {lead.priority !== 'Critical' && lead.priority !== 'High' && <Star size={12} />}
                             {lead.priority}
                           </div>
                         </td>
@@ -402,9 +409,14 @@ export default function SalesLeadsPage() {
                           </button>
                           {assignMenuFor === lead.id && (
                             <>
-                              <div className="fixed inset-0 z-10" onClick={() => setAssignMenuFor(null)} />
                               <div
-                                role="listbox"
+                                role="button"
+                                tabIndex={0}
+                                className="fixed inset-0 z-10"
+                                onClick={() => setAssignMenuFor(null)}
+                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setAssignMenuFor(null); }}
+                              />
+                              <div
                                 className="absolute z-20 left-5 top-full mt-1 w-48 bg-white border border-slate-200 rounded-xl shadow-lg py-1.5 max-h-56 overflow-y-auto"
                               >
                                 <div className="px-3 py-1 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Assign to</div>
@@ -415,7 +427,6 @@ export default function SalesLeadsPage() {
                                     <button
                                       key={m.id}
                                       type="button"
-                                      role="option"
                                       onClick={() => handleAssign(lead.id, m.id)}
                                       className="w-full text-left px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 transition-colors"
                                     >
@@ -442,6 +453,7 @@ export default function SalesLeadsPage() {
                               <ExternalLink size={14} />
                             </Link>
                             <button
+                              type="button"
                               onClick={() => {
                                 setLeadToEdit(lead);
                                 setShowAddLeadModal(true);
@@ -452,6 +464,7 @@ export default function SalesLeadsPage() {
                               <Edit size={14} />
                             </button>
                             <button
+                              type="button"
                               onClick={() => handleDeleteLead(lead.id, displayName)}
                               className="p-1 text-slate-400 hover:text-red-600 transition-colors"
                               title="Delete Lead"
@@ -473,6 +486,7 @@ export default function SalesLeadsPage() {
             <span>Showing {filtered.length === 0 ? 0 : (page - 1) * pageSize + 1} - {Math.min(filtered.length, page * pageSize)} of {filtered.length} leads</span>
             <div className="flex gap-2">
               <button
+                type="button"
                 onClick={() => setPage(p => Math.max(1, p - 1))}
                 disabled={page === 1}
                 className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs hover:bg-slate-50 text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -480,6 +494,7 @@ export default function SalesLeadsPage() {
                 Previous
               </button>
               <button
+                type="button"
                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                 disabled={page >= totalPages || totalPages === 0}
                 className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs hover:bg-slate-50 text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"

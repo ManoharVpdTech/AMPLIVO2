@@ -4,7 +4,7 @@ import { AdminHeader } from '@/components/admin/AdminSidebar';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { projectService, clientService, userManagementService } from '@/services/crmService';
 import { useToastStore } from '@/store/toastStore';
-import { Search, Plus, LayoutTemplate, Clock, X, Loader2, Trash2, Pencil, ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react';
+import { Search, Plus, LayoutTemplate, Clock, X, Loader2, Trash2, Pencil, AlertCircle } from 'lucide-react';
 
 interface Project {
   id: string;
@@ -213,19 +213,23 @@ export default function AdminProjects() {
             >
               {STATUS_FILTERS.map((s) => <option key={s} value={s}>{s === 'All' ? 'All Statuses' : s}</option>)}
             </select>
-            <button onClick={openCreateModal} className="flex items-center gap-2 px-4 py-2 bg-[#4C1D95] text-white rounded-xl text-sm font-semibold hover:bg-[#3b1574] transition-colors">
+            <button type="button" onClick={openCreateModal} className="flex items-center gap-2 px-4 py-2 bg-[#4C1D95] text-white rounded-xl text-sm font-semibold hover:bg-[#3b1574] transition-colors">
               <Plus size={16} /> New Project
             </button>
           </div>
         </div>
 
-        {loading ? (
+        {loading && (
           <div className="flex items-center justify-center py-20 bg-white rounded-2xl border border-slate-200">
             <Loader2 size={32} className="animate-spin text-[#4C1D95]" />
           </div>
-        ) : projects.length === 0 ? (
+        )}
+
+        {!loading && projects.length === 0 && (
           <div className="text-center py-20 text-slate-400 text-sm bg-white rounded-2xl border border-slate-200">No projects found.</div>
-        ) : (
+        )}
+
+        {!loading && projects.length > 0 && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {projects.map((project) => (
               <div key={project.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 hover:shadow-md transition-shadow group flex flex-col">
@@ -241,10 +245,10 @@ export default function AdminProjects() {
                   </div>
                   {/* BUG-32 Fixed: Clean edit/delete action icons without misaligned inline text buttons */}
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => openEditModal(project)} className="p-1.5 text-slate-400 hover:text-[#4C1D95] hover:bg-[#4C1D95]/10 rounded-lg transition-colors" title="Edit">
+                    <button type="button" onClick={() => openEditModal(project)} className="p-1.5 text-slate-400 hover:text-[#4C1D95] hover:bg-[#4C1D95]/10 rounded-lg transition-colors" title="Edit">
                       <Pencil size={14} />
                     </button>
-                    <button onClick={() => setDeleteConfirmId(project.id)} className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" title="Delete">
+                    <button type="button" onClick={() => setDeleteConfirmId(project.id)} className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" title="Delete">
                       <Trash2 size={14} />
                     </button>
                   </div>
@@ -281,6 +285,7 @@ export default function AdminProjects() {
             <div>Showing {projects.length} of {totalCount} projects</div>
             <div className="flex gap-2 items-center">
               <button
+                type="button"
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page <= 1}
                 className="px-3 py-1 bg-white border border-slate-200 rounded text-slate-700 hover:bg-slate-50 disabled:text-slate-300 disabled:cursor-not-allowed"
@@ -289,6 +294,7 @@ export default function AdminProjects() {
               </button>
               <span className="text-xs text-slate-500 font-medium">Page {page} of {totalPages}</span>
               <button
+                type="button"
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page >= totalPages}
                 className="px-3 py-1 bg-white border border-slate-200 rounded text-slate-700 hover:bg-slate-50 disabled:text-slate-300 disabled:cursor-not-allowed"
@@ -302,16 +308,17 @@ export default function AdminProjects() {
 
       {/* New / Edit Project Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="button" tabIndex={0} onClick={() => setShowModal(false)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setShowModal(false); }}>
           <div className="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-center p-6 border-b border-slate-200">
               <h2 className="text-lg font-bold text-slate-900">{editingProject ? 'Edit Project' : 'New Project'}</h2>
-              <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+              <button type="button" onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Project Name <span className="text-red-500">*</span></label>
+                <label htmlFor="project-name" className="block text-xs font-semibold text-slate-600 mb-1">Project Name <span className="text-red-500">*</span></label>
                 <input
+                  id="project-name"
                   type="text"
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -325,8 +332,9 @@ export default function AdminProjects() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Client</label>
+                  <label htmlFor="project-client" className="block text-xs font-semibold text-slate-600 mb-1">Client</label>
                   <select
+                    id="project-client"
                     value={form.client_id}
                     onChange={(e) => setForm({ ...form, client_id: e.target.value })}
                     className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-[#4C1D95] bg-white"
@@ -338,8 +346,9 @@ export default function AdminProjects() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Manager</label>
+                  <label htmlFor="project-manager" className="block text-xs font-semibold text-slate-600 mb-1">Manager</label>
                   <select
+                    id="project-manager"
                     value={form.manager_id}
                     onChange={(e) => setForm({ ...form, manager_id: e.target.value })}
                     className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-[#4C1D95] bg-white"
@@ -355,8 +364,9 @@ export default function AdminProjects() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Status</label>
+                  <label htmlFor="project-status" className="block text-xs font-semibold text-slate-600 mb-1">Status</label>
                   <select
+                    id="project-status"
                     value={form.status}
                     onChange={(e) => setForm({ ...form, status: e.target.value })}
                     className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-[#4C1D95] bg-white"
@@ -433,8 +443,8 @@ export default function AdminProjects() {
 
       {/* BUG-32 Delete Confirmation Modal */}
       {deleteConfirmId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-sm w-full space-y-4 border border-slate-200 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="button" tabIndex={0} onClick={() => setDeleteConfirmId(null)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setDeleteConfirmId(null); }}>
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full space-y-4 border border-slate-200 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center gap-3 text-rose-600">
               <AlertCircle size={24} />
               <h3 className="font-bold text-slate-900 text-base">Delete Project</h3>
@@ -442,12 +452,14 @@ export default function AdminProjects() {
             <p className="text-xs text-slate-600">Are you sure you want to delete this project? Any associated timelines and tasks will also be affected.</p>
             <div className="flex justify-end gap-2 pt-2">
               <button
+                type="button"
                 onClick={() => setDeleteConfirmId(null)}
                 className="px-3 py-1.5 text-xs font-semibold text-slate-600 bg-slate-100 rounded-xl hover:bg-slate-200"
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={() => handleDelete(deleteConfirmId)}
                 className="px-3 py-1.5 text-xs font-semibold text-white bg-rose-600 rounded-xl hover:bg-rose-700"
               >

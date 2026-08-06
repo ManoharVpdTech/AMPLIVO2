@@ -49,7 +49,7 @@ function groupMessagesByDate(messages: MessageRead[]): { label: string; messages
       currentLabel = label;
       groups.push({ label, messages: [msg] });
     } else {
-      groups[groups.length - 1].messages.push(msg);
+      groups.at(-1)?.messages.push(msg);
     }
   }
   return groups;
@@ -288,6 +288,7 @@ export default function MessagesPage() {
                 Confirm Attachment
               </h3>
               <button
+                type="button"
                 onClick={handleCancelAttachment}
                 disabled={attaching}
                 className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition-colors"
@@ -325,10 +326,11 @@ export default function MessagesPage() {
 
               {/* BUG-02: Optional message to send alongside attachment */}
               <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1.5">
+                <label htmlFor="attach-msg" className="block text-xs font-medium text-slate-500 mb-1.5">
                   Add a message <span className="text-slate-400 font-normal">(optional)</span>
                 </label>
                 <textarea
+                  id="attach-msg"
                   value={attachmentMessage}
                   onChange={(e) => setAttachmentMessage(e.target.value)}
                   placeholder="Write a message to send with this attachment..."

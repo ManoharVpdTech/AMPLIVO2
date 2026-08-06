@@ -29,11 +29,11 @@ export function truncate(text: string, maxLength: number): string {
  * Get initials from a name (e.g. "Rajesh Kumar" → "RK")
  */
 export function getInitials(name: string | undefined | null): string {
-  if (!name || !name.trim()) return 'EP';
+  if (!name?.trim()) return 'EP';
   const parts = name.trim().split(/\s+/).filter(Boolean);
   if (parts.length === 0) return 'EP';
   if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  return (parts[0][0] + (parts.at(-1)?.[0] ?? '')).toUpperCase();
 }
 
 /**
@@ -47,7 +47,7 @@ export function getEffectiveMeetingStatus<T extends { date: string; time: string
 ): T['status'] {
   if (meeting.status === 'Scheduled') {
     const scheduledAt = new Date(`${meeting.date}T${meeting.time}`);
-    if (!isNaN(scheduledAt.getTime()) && scheduledAt.getTime() < Date.now()) {
+    if (!Number.isNaN(scheduledAt.getTime()) && scheduledAt.getTime() < Date.now()) {
       return 'No-Show' as T['status'];
     }
   }

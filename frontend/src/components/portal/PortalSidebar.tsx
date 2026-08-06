@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';import { Logo } from '@/components/ui/Logo';
 import { LayoutDashboard, Megaphone, TrendingUp, BarChart2, Image as ImageIcon,
-  Files, Calendar, MessageSquare, FileText, LifeBuoy, Settings, LogOut, Zap, Bell,
+  Files, Calendar, MessageSquare, FileText, LifeBuoy, Settings, LogOut, Bell,
   FolderKanban, Receipt, Folder, Menu, CheckCheck
 } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
@@ -19,6 +19,71 @@ interface AccountManager {
   email: string;
 }
 
+async function fetchActiveCampaignsCount(): Promise<number> {
+  try {
+    const campaignsRes = await campaignService.getAll({ page_size: 100 });
+    const items = campaignsRes?.items ?? [];
+    return items.filter((c: { status?: string }) => c.status === 'Active').length;
+  } catch {
+    return 0;
+  }
+}
+
+async function fetchPendingCreativesCount(): Promise<number> {
+  try {
+    const projectsRes = await creativeService.getProjects({ page_size: 20 });
+    const projects = projectsRes?.items ?? projectsRes ?? [];
+    let pending = 0;
+    for (const p of projects.slice(0, 5)) {
+      try {
+        const assets = await creativeService.getAssets(p.id);
+        pending += (assets ?? []).filter((a: { status?: string }) => (a.status ?? '').toLowerCase() === 'pending').length;
+      } catch {
+        // skip project on error
+      }
+    }
+    return pending;
+  } catch {
+    return 0;
+  }
+}
+
+async function fetchUnreadMessagesCount(userId?: string): Promise<number> {
+  try {
+    const convRes = await messagingService.getConversations({ page_size: 5 });
+    const conversations = convRes?.items ?? [];
+    let unread = 0;
+    for (const c of conversations) {
+      try {
+        const messages = await messagingService.getMessages(c.id);
+        unread += messages.filter((m) => !m.is_read && m.sender_id !== userId).length;
+      } catch {
+        // skip conversation on error
+      }
+    }
+    return unread;
+  } catch {
+    return 0;
+  }
+}
+
+async function fetchAccountManagerInfo(): Promise<AccountManager | null> {
+  try {
+    const company = await companyService.getMine();
+    if (!company.assigned_to) return null;
+    const manager = await userManagementService.getUser(company.assigned_to);
+    let name = manager.full_name ?? manager.name ?? 'Account Manager';
+    let email = manager.email ?? '';
+    if (name === 'Admin User' || email === 'admin@amplivo.in') {
+      name = 'Account Manager';
+      email = 'support@amplivo.in';
+    }
+    return { name, email };
+  } catch {
+    return null;
+  }
+}
+
 function useSidebarData() {
   const [activeCampaigns, setActiveCampaigns] = useState(0);
   const [pendingCreatives, setPendingCreatives] = useState(0);
@@ -30,63 +95,17 @@ function useSidebarData() {
     let cancelled = false;
 
     async function load() {
-      try {
-        const campaignsRes = await campaignService.getAll({ page_size: 100 });
-        const items = campaignsRes?.items ?? [];
-        if (!cancelled) setActiveCampaigns(items.filter((c: { status?: string }) => c.status === 'Active').length);
-      } catch {
-        // leave at 0
-      }
+      const activeCount = await fetchActiveCampaignsCount();
+      if (!cancelled) setActiveCampaigns(activeCount);
 
-      try {
-        const projectsRes = await creativeService.getProjects({ page_size: 20 });
-        const projects = projectsRes?.items ?? projectsRes ?? [];
-        let pending = 0;
-        for (const p of projects.slice(0, 5)) {
-          try {
-            const assets = await creativeService.getAssets(p.id);
-            pending += (assets ?? []).filter((a: { status?: string }) => (a.status ?? '').toLowerCase() === 'pending').length;
-          } catch {
-            // skip project on error
-          }
-        }
-        if (!cancelled) setPendingCreatives(pending);
-      } catch {
-        // leave at 0
-      }
+      const pendingCount = await fetchPendingCreativesCount();
+      if (!cancelled) setPendingCreatives(pendingCount);
 
-      try {
-        const convRes = await messagingService.getConversations({ page_size: 5 });
-        const conversations = convRes?.items ?? [];
-        let unread = 0;
-        for (const c of conversations) {
-          try {
-            const messages = await messagingService.getMessages(c.id);
-            unread += messages.filter((m) => !m.is_read && m.sender_id !== user?.id).length;
-          } catch {
-            // skip conversation on error
-          }
-        }
-        if (!cancelled) setUnreadMessages(unread);
-      } catch {
-        // leave at 0
-      }
+      const unreadCount = await fetchUnreadMessagesCount(user?.id);
+      if (!cancelled) setUnreadMessages(unreadCount);
 
-      try {
-        const company = await companyService.getMine();
-        if (company.assigned_to) {
-          const manager = await userManagementService.getUser(company.assigned_to);
-          let name = manager.full_name ?? manager.name ?? 'Account Manager';
-          let email = manager.email ?? '';
-          if (name === 'Admin User' || email === 'admin@amplivo.in') {
-            name = 'Account Manager';
-            email = 'support@amplivo.in';
-          }
-          if (!cancelled) setAccountManager({ name, email });
-        }
-      } catch {
-        // no account manager assigned / not a client-portal user
-      }
+      const managerInfo = await fetchAccountManagerInfo();
+      if (!cancelled && managerInfo) setAccountManager(managerInfo);
     }
 
     load();
@@ -103,14 +122,14 @@ export function PortalSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout, refreshToken } = useAuthStore();
-  const { activeCampaigns, pendingCreatives, unreadMessages, accountManager } = useSidebarData();
+  const { activeCampaigns, pendingCreatives, unreadMessages } = useSidebarData();
   const { isSidebarOpen, setSidebarOpen } = useUiStore();
   const [lastSeenCampaigns, setLastSeenCampaigns] = useState(0);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('lastSeenCampaigns');
-      if (stored) setLastSeenCampaigns(parseInt(stored, 10));
+      if (stored) setLastSeenCampaigns(Number.parseInt(stored, 10));
     }
   }, []);
 
@@ -157,8 +176,16 @@ export function PortalSidebar() {
       {/* Mobile Overlay */}
       {isSidebarOpen && (
         <div 
+          role="button"
+          tabIndex={0}
           className="fixed inset-0 bg-slate-900/50 z-40 md:hidden" 
           onClick={() => setSidebarOpen(false)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              setSidebarOpen(false);
+            }
+          }}
         />
       )}
       <aside className={`
@@ -212,7 +239,7 @@ export function PortalSidebar() {
       {/* Footer / Sign Out */}
       <div className="px-4 py-4 border-t border-[#1F2937]">
         <div className="flex gap-2">
-          <button onClick={handleLogout} className="flex items-center gap-2 px-3 py-2 rounded-[10px] text-[#9CA3AF] hover:bg-[#1F2937] hover:text-red-400 transition-all text-xs flex-1">
+          <button type="button" onClick={handleLogout} className="flex items-center gap-2 px-3 py-2 rounded-[10px] text-[#9CA3AF] hover:bg-[#1F2937] hover:text-red-400 transition-all text-xs flex-1">
             <LogOut size={14} /> Sign Out
           </button>
           <Link href="/portal/settings" className="flex items-center justify-center w-9 h-9 rounded-[10px] text-[#9CA3AF] hover:bg-[#1F2937] hover:text-white transition-all">
@@ -230,7 +257,7 @@ interface PortalHeaderProps {
   title: string;
   subtitle?: string;
 }
-export function PortalHeader({ title, subtitle }: PortalHeaderProps) {
+export function PortalHeader({ title, subtitle }: Readonly<PortalHeaderProps>) {
   // BUG-018: read user from auth store so avatar reflects latest upload
   const { user } = useAuthStore();
   const { toggleSidebar } = useUiStore();
@@ -300,6 +327,7 @@ export function PortalHeader({ title, subtitle }: PortalHeaderProps) {
     <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-6 flex-shrink-0 sticky top-0 z-10 gap-4">
       <div className="flex items-center gap-3 min-w-0">
         <button 
+          type="button"
           onClick={toggleSidebar}
           className="md:hidden text-slate-500 hover:text-slate-900 focus:outline-none shrink-0"
         >
@@ -313,6 +341,7 @@ export function PortalHeader({ title, subtitle }: PortalHeaderProps) {
       <div className="flex items-center gap-2 md:gap-3 shrink-0">
         <div className="relative" ref={ref}>
           <button
+            type="button"
             onClick={() => setOpen((o) => !o)}
             className="relative w-9 h-9 rounded-[10px] bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-900 transition-colors"
           >
@@ -331,6 +360,7 @@ export function PortalHeader({ title, subtitle }: PortalHeaderProps) {
                   {/* BUG-06: Mark all read button inside popup */}
                   {unreadCount > 0 && (
                     <button
+                      type="button"
                       onClick={handleMarkAllRead}
                       className="text-xs text-[#4C1D95] hover:underline flex items-center gap-1"
                       title="Mark all as read"
@@ -352,6 +382,7 @@ export function PortalHeader({ title, subtitle }: PortalHeaderProps) {
                 ) : (
                   notifications.slice(0, 6).map((n) => (
                     <button
+                      type="button"
                       key={n.id}
                       onClick={() => handleMarkRead(n.id)}
                       className="w-full text-left px-4 py-3 border-b border-slate-50 hover:bg-slate-50 flex gap-2"

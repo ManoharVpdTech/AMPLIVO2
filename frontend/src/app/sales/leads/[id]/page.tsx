@@ -28,7 +28,7 @@ const formatDate = (isoString: string | null | undefined) => {
   if (!isoString) return 'Not Scheduled';
   try {
     const d = new Date(isoString);
-    if (isNaN(d.getTime())) return isoString;
+    if (Number.isNaN(d.getTime())) return isoString;
     return d.toLocaleString('en-US', {
       month: 'short',
       day: 'numeric',
@@ -140,6 +140,7 @@ export default function LeadDetailPage({ params }: PageProps) {
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-5">
           <div className="flex items-center gap-3">
             <button
+              type="button"
               onClick={() => {
                 if (window.history.length > 1) {
                   router.back();
@@ -157,6 +158,7 @@ export default function LeadDetailPage({ params }: PageProps) {
 
           <div className="flex items-center gap-2">
             <button
+              type="button"
               onClick={() => setShowMeetingModal(true)}
               className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-[#4C1D95] rounded-xl text-xs font-bold hover:bg-violet-50 hover:border-violet-200 transition-colors shadow-sm"
             >
@@ -165,6 +167,7 @@ export default function LeadDetailPage({ params }: PageProps) {
 
             {canGenerateInvoice && (
               <button
+                type="button"
                 onClick={handleGenerateInvoice}
                 disabled={generatingInvoice}
                 className="flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-[#4C1D95] to-[#7C3AED] text-white rounded-xl text-xs font-bold hover:shadow-lg hover:shadow-violet-500/25 transition-all disabled:opacity-70 shadow-sm"
@@ -312,11 +315,11 @@ export default function LeadDetailPage({ params }: PageProps) {
                           className="w-full pl-7 pr-3 py-2 border border-[#4C1D95] rounded-lg text-sm focus:outline-none"
                         />
                       </div>
-                      <button onClick={() => { updateLeadBudget(lead.id, budgetValue); setEditingBudget(false); }}
+                      <button type="button" onClick={() => { updateLeadBudget(lead.id, budgetValue); setEditingBudget(false); }}
                         className="px-3 py-2 bg-[#4C1D95] text-white rounded-lg text-sm hover:bg-[#3b1574]">
                         <Save size={14} />
                       </button>
-                      <button onClick={() => { setBudgetValue(lead.budget); setEditingBudget(false); }}
+                      <button type="button" onClick={() => { setBudgetValue(lead.budget); setEditingBudget(false); }}
                         className="px-3 py-2 bg-slate-100 text-slate-600 rounded-lg text-sm">
                         <X size={14} />
                       </button>
@@ -326,7 +329,7 @@ export default function LeadDetailPage({ params }: PageProps) {
                       <div className="text-2xl font-bold text-[#4C1D95]" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
                         ₹{lead.budget.toLocaleString('en-IN')}
                       </div>
-                      <button onClick={() => { setBudgetValue(lead.budget); setEditingBudget(true); }} className="p-1.5 text-slate-400 hover:text-[#4C1D95] rounded-lg hover:bg-violet-50 transition-colors">
+                      <button type="button" onClick={() => { setBudgetValue(lead.budget); setEditingBudget(true); }} className="p-1.5 text-slate-400 hover:text-[#4C1D95] rounded-lg hover:bg-violet-50 transition-colors">
                         <Edit2 size={13} />
                       </button>
                     </div>
@@ -369,6 +372,7 @@ export default function LeadDetailPage({ params }: PageProps) {
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-bold text-slate-800 text-sm">Interested Services</h3>
                 <button
+                  type="button"
                   onClick={() => {
                     if (!editingServices) {
                       setServicesValue(lead.interestedServices);
@@ -395,6 +399,7 @@ export default function LeadDetailPage({ params }: PageProps) {
                     onChange={setServicesValue}
                   />
                   <button
+                    type="button"
                     onClick={() => {
                       updateLeadServices(lead.id, servicesValue);
                       setEditingServices(false);
@@ -429,6 +434,7 @@ export default function LeadDetailPage({ params }: PageProps) {
                 <h3 className="font-bold text-slate-800 text-sm">Notes</h3>
                 {!editingNotes && (
                   <button
+                    type="button"
                     onClick={() => { setNotesValue(lead.notes); setEditingNotes(true); }}
                     className="flex items-center gap-1.5 text-xs font-semibold text-[#4C1D95] bg-violet-50 px-3 py-1.5 rounded-lg hover:bg-violet-100 transition-colors"
                   >
@@ -447,6 +453,7 @@ export default function LeadDetailPage({ params }: PageProps) {
                   />
                   <div className="flex gap-2 mt-3">
                     <button
+                      type="button"
                       onClick={() => {
                         updateLeadNotes(lead.id, notesValue);
                         setEditingNotes(false);
@@ -457,6 +464,7 @@ export default function LeadDetailPage({ params }: PageProps) {
                       Save Notes
                     </button>
                     <button
+                      type="button"
                       onClick={() => setEditingNotes(false)}
                       className="px-4 py-2.5 border border-slate-200 text-slate-600 rounded-xl text-sm font-semibold hover:bg-slate-50 transition-colors"
                     >
@@ -476,6 +484,7 @@ export default function LeadDetailPage({ params }: PageProps) {
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-bold text-slate-800 text-sm">Meeting History</h3>
                 <button
+                  type="button"
                   onClick={() => setShowMeetingModal(true)}
                   className="flex items-center gap-1.5 text-xs font-semibold text-[#4C1D95] bg-violet-50 px-3 py-1.5 rounded-lg hover:bg-violet-100 transition-colors"
                 >
@@ -551,6 +560,7 @@ export default function LeadDetailPage({ params }: PageProps) {
                     <div className="text-white/50 text-[10px] mt-0.5">(3 months × budget × 25% + 18% GST)</div>
                   </div>
                   <button
+                    type="button"
                     onClick={handleGenerateInvoice}
                     disabled={generatingInvoice}
                     className="w-full py-3 bg-white text-[#4C1D95] rounded-xl text-sm font-bold hover:bg-white/90 transition-colors disabled:opacity-70"

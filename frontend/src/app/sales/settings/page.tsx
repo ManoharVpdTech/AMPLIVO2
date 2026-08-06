@@ -19,7 +19,7 @@ const tabs = [
   { id: 'security', label: 'Security', icon: Shield },
 ];
 
-const GSTIN_REGEX = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+const GSTIN_REGEX = /^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
 
 interface TeamMember {
   id: string;
@@ -41,7 +41,7 @@ function passwordChecks(pwd: string) {
     length: pwd.length >= 8,
     upper: /[A-Z]/.test(pwd),
     lower: /[a-z]/.test(pwd),
-    digit: /[0-9]/.test(pwd),
+    digit: /\d/.test(pwd),
     special: /[^A-Za-z0-9]/.test(pwd),
   };
 }
@@ -107,22 +107,29 @@ export default function SalesSettingsPage() {
         const users = Array.isArray(usersRes) ? usersRes : usersRes?.items || [];
         const rolesList = Array.isArray(rolesRes) ? rolesRes : rolesRes?.items || [];
         const mappedRoles: TeamMemberRole[] = rolesList.map((r: Record<string, unknown>) => ({
-          id: String(r.id || ''),
-          name: String(r.name || ''),
+          id: typeof r.id === 'string' ? r.id : String(r.id ?? ''),
+          name: typeof r.name === 'string' ? r.name : String(r.name ?? ''),
         }));
         setRoles(mappedRoles);
 
         const roleNameById = new Map(mappedRoles.map((r) => [r.id, r.name]));
         setTeamMembers(
-          users.map((u: Record<string, unknown>) => ({
-            id: String(u.id || ''),
-            name: String(u.full_name || u.name || ''),
-            email: String(u.email || ''),
-            phone: String(u.phone || ''),
-            roleId: String(u.role_id || ''),
-            roleName: roleNameById.get(String(u.role_id || '')) || '—',
-            isActive: u.is_active !== false,
-          }))
+          users.map((u: Record<string, unknown>) => {
+            const uId = typeof u.id === 'string' ? u.id : String(u.id ?? '');
+            const uName = typeof u.full_name === 'string' ? u.full_name : typeof u.name === 'string' ? u.name : '';
+            const uEmail = typeof u.email === 'string' ? u.email : '';
+            const uPhone = typeof u.phone === 'string' ? u.phone : '';
+            const uRoleId = typeof u.role_id === 'string' ? u.role_id : String(u.role_id ?? '');
+            return {
+              id: uId,
+              name: uName,
+              email: uEmail,
+              phone: uPhone,
+              roleId: uRoleId,
+              roleName: roleNameById.get(uRoleId) || '—',
+              isActive: u.is_active !== false,
+            };
+          })
         );
 
         if (prefsRes) {
@@ -188,20 +195,28 @@ export default function SalesSettingsPage() {
       const users = Array.isArray(usersRes) ? usersRes : usersRes?.items || [];
       const rolesList = Array.isArray(rolesRes) ? rolesRes : rolesRes?.items || [];
       const mappedRoles: TeamMemberRole[] = rolesList.map((r: Record<string, unknown>) => ({
-        id: String(r.id || ''), name: String(r.name || ''),
+        id: typeof r.id === 'string' ? r.id : String(r.id ?? ''),
+        name: typeof r.name === 'string' ? r.name : String(r.name ?? ''),
       }));
       setRoles(mappedRoles);
       const roleNameById = new Map(mappedRoles.map((r) => [r.id, r.name]));
       setTeamMembers(
-        users.map((u: Record<string, unknown>) => ({
-          id: String(u.id || ''),
-          name: String(u.full_name || u.name || ''),
-          email: String(u.email || ''),
-          phone: String(u.phone || ''),
-          roleId: String(u.role_id || ''),
-          roleName: roleNameById.get(String(u.role_id || '')) || '—',
-          isActive: u.is_active !== false,
-        }))
+        users.map((u: Record<string, unknown>) => {
+          const uId = typeof u.id === 'string' ? u.id : String(u.id ?? '');
+          const uName = typeof u.full_name === 'string' ? u.full_name : typeof u.name === 'string' ? u.name : '';
+          const uEmail = typeof u.email === 'string' ? u.email : '';
+          const uPhone = typeof u.phone === 'string' ? u.phone : '';
+          const uRoleId = typeof u.role_id === 'string' ? u.role_id : String(u.role_id ?? '');
+          return {
+            id: uId,
+            name: uName,
+            email: uEmail,
+            phone: uPhone,
+            roleId: uRoleId,
+            roleName: roleNameById.get(uRoleId) || '—',
+            isActive: u.is_active !== false,
+          };
+        })
       );
     } catch {
       // keep existing list on failure
@@ -278,7 +293,12 @@ export default function SalesSettingsPage() {
   const checks = passwordChecks(newPassword);
   const strengthScore = Object.values(checks).filter(Boolean).length;
   const strengthLabel = strengthScore <= 2 ? 'Weak' : strengthScore <= 4 ? 'Medium' : 'Strong';
-  const strengthColor = strengthScore <= 2 ? 'bg-red-500' : strengthScore <= 4 ? 'bg-amber-500' : 'bg-emerald-500';
+  let strengthColor = 'bg-emerald-500';
+  if (strengthScore <= 2) {
+    strengthColor = 'bg-red-500';
+  } else if (strengthScore <= 4) {
+    strengthColor = 'bg-amber-500';
+  }
 
   const passwordFormValid =
     currentPassword.length > 0 &&
@@ -323,7 +343,7 @@ export default function SalesSettingsPage() {
   const generateBackupCodes = () => {
     const codes = Array.from({ length: 8 }, () => {
       const bytes = new Uint8Array(5);
-      (typeof window !== 'undefined' && window.crypto ? window.crypto : { getRandomValues: (arr: Uint8Array) => arr.map(() => Math.floor(Math.random() * 256)) }).getRandomValues(bytes);
+      window.crypto.getRandomValues(bytes);
       return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('').slice(0, 8).toUpperCase().replace(/(.{4})(.{4})/, '$1-$2');
     });
     setBackupCodes(codes);
@@ -365,6 +385,7 @@ export default function SalesSettingsPage() {
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
               {tabs.map((tab) => (
                 <button
+                  type="button"
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={`w-full flex items-center justify-between px-4 py-3.5 text-sm font-medium transition-all border-b border-slate-100 last:border-0 ${
@@ -389,6 +410,7 @@ export default function SalesSettingsPage() {
                 <div className="flex items-center justify-between mb-5">
                   <h2 className="font-bold text-slate-900" style={{ fontFamily: "'Sora', sans-serif" }}>Sales Team Members</h2>
                   <button
+                    type="button"
                     onClick={() => setShowAddMember(true)}
                     className="flex items-center gap-1.5 px-3.5 py-2 bg-[#4C1D95] text-white rounded-xl text-xs font-semibold hover:bg-[#3b1574] transition-colors"
                   >
@@ -416,6 +438,7 @@ export default function SalesSettingsPage() {
                         </div>
                       </div>
                       <button
+                        type="button"
                         onClick={() => setMemberToEdit({ id: member.id, name: member.name, email: member.email, phone: member.phone, roleId: member.roleId, isActive: member.isActive })}
                         className="px-3 py-1.5 bg-violet-50 text-[#4C1D95] rounded-lg text-xs font-semibold hover:bg-violet-100 transition-colors flex-shrink-0"
                       >
@@ -475,10 +498,11 @@ export default function SalesSettingsPage() {
                 <h2 className="font-bold text-slate-900" style={{ fontFamily: "'Sora', sans-serif" }}>Tax & Billing Settings</h2>
                 <div className="grid grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+                    <label htmlFor="settings-tax-rate" className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
                       Default Tax Rate (%) <span className="text-red-500">*</span>
                     </label>
                     <input
+                      id="settings-tax-rate"
                       type="number"
                       min={0}
                       max={100}
@@ -496,10 +520,11 @@ export default function SalesSettingsPage() {
                     )}
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+                    <label htmlFor="settings-advance-percent" className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
                       Advance Payment (%) <span className="text-red-500">*</span>
                     </label>
                     <input
+                      id="settings-advance-percent"
                       type="number"
                       min={0}
                       max={100}
@@ -530,10 +555,11 @@ export default function SalesSettingsPage() {
                     {taxErrors.gstin && <p className="text-xs text-red-500 mt-1">{taxErrors.gstin}</p>}
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+                    <label htmlFor="settings-payment-terms" className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
                       Payment Terms (days) <span className="text-red-500">*</span>
                     </label>
                     <input
+                      id="settings-payment-terms"
                       value={paymentTerms}
                       onChange={(e) => setPaymentTerms(e.target.value)}
                       type="number"
@@ -547,6 +573,7 @@ export default function SalesSettingsPage() {
                   </div>
                 </div>
                 <button
+                  type="button"
                   onClick={handleSaveTax}
                   disabled={savingTax || !taxDirty || Object.keys(taxErrors).length > 0}
                   title={!taxDirty ? 'No changes to save' : undefined}
@@ -574,6 +601,7 @@ export default function SalesSettingsPage() {
                   </div>
                 ))}
                 <button
+                  type="button"
                   onClick={handleSavePreferences}
                   disabled={savingPrefs || !notificationsDirty}
                   title={!notificationsDirty ? 'No changes to save' : undefined}
@@ -599,9 +627,10 @@ export default function SalesSettingsPage() {
                     )}
 
                     <div>
-                      <label className="block text-xs text-slate-500 mb-1">Current Password</label>
+                      <label htmlFor="settings-current-pwd" className="block text-xs text-slate-500 mb-1">Current Password</label>
                       <div className="relative">
                         <input
+                          id="settings-current-pwd"
                           type={showCurrent ? 'text' : 'password'}
                           required
                           value={currentPassword}
@@ -619,9 +648,10 @@ export default function SalesSettingsPage() {
                     </div>
 
                     <div>
-                      <label className="block text-xs text-slate-500 mb-1">New Password</label>
+                      <label htmlFor="settings-new-pwd" className="block text-xs text-slate-500 mb-1">New Password</label>
                       <div className="relative">
                         <input
+                          id="settings-new-pwd"
                           type={showNew ? 'text' : 'password'}
                           required
                           value={newPassword}
@@ -640,7 +670,9 @@ export default function SalesSettingsPage() {
                               <div key={i} className={`h-1 flex-1 rounded-full ${i < strengthScore - 1 ? strengthColor : 'bg-slate-100'}`} />
                             ))}
                           </div>
-                          <p className={`text-[11px] font-semibold mt-1 ${strengthScore <= 2 ? 'text-red-500' : strengthScore <= 4 ? 'text-amber-500' : 'text-emerald-600'}`}>
+                          <p className={`text-[11px] font-semibold mt-1 ${
+                            strengthScore <= 2 ? 'text-red-500' : strengthScore <= 4 ? 'text-amber-500' : 'text-emerald-600'
+                          }`}>
                             {strengthLabel}
                           </p>
                           <ul className="grid grid-cols-2 gap-x-3 gap-y-0.5 mt-1.5">
@@ -661,9 +693,10 @@ export default function SalesSettingsPage() {
                     </div>
 
                     <div>
-                      <label className="block text-xs text-slate-500 mb-1">Confirm New Password</label>
+                      <label htmlFor="settings-confirm-pwd" className="block text-xs text-slate-500 mb-1">Confirm New Password</label>
                       <div className="relative">
                         <input
+                          id="settings-confirm-pwd"
                           type={showConfirm ? 'text' : 'password'}
                           required
                           value={confirmPassword}
@@ -702,6 +735,7 @@ export default function SalesSettingsPage() {
                         </p>
                       </div>
                       <button
+                        type="button"
                         onClick={handleToggleTwoFactor}
                         disabled={savingTwoFactor}
                         className={`px-4 py-2 rounded-xl text-xs font-semibold transition-colors disabled:opacity-50 flex-shrink-0 ${
@@ -714,6 +748,7 @@ export default function SalesSettingsPage() {
                     {twoFactorEnabled && (
                       <div className="mt-3 pt-3 border-t border-emerald-100 flex flex-wrap gap-2">
                         <button
+                          type="button"
                           onClick={generateBackupCodes}
                           className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-emerald-300 text-emerald-700 hover:bg-emerald-100 transition-colors"
                         >
@@ -729,7 +764,7 @@ export default function SalesSettingsPage() {
 
           {showBackupCodes && backupCodes && (
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-              <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowBackupCodes(false)} />
+              <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" role="button" tabIndex={0} onClick={() => setShowBackupCodes(false)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setShowBackupCodes(false); }} />
               <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md border border-slate-200 p-6">
                 <h2 className="font-bold text-slate-900 text-lg mb-1">Backup Recovery Codes</h2>
                 <p className="text-xs text-slate-500 mb-4">
@@ -742,6 +777,7 @@ export default function SalesSettingsPage() {
                 </div>
                 <div className="flex gap-3">
                   <button
+                    type="button"
                     onClick={() => {
                       navigator.clipboard?.writeText(backupCodes.join('\n'));
                       showToast('Backup codes copied to clipboard', 'success');
@@ -751,6 +787,7 @@ export default function SalesSettingsPage() {
                     Copy Codes
                   </button>
                   <button
+                    type="button"
                     onClick={() => setShowBackupCodes(false)}
                     className="flex-1 px-4 py-2.5 bg-[#4C1D95] text-white rounded-xl text-sm font-semibold hover:bg-[#3b1574] transition-colors"
                   >

@@ -265,6 +265,7 @@ export function AdminHeader({ title, subtitle, badge, actions }: AdminHeaderProp
     <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-6 flex-shrink-0 sticky top-0 z-10 gap-4">
       <div className="flex items-center gap-3 min-w-0">
         <button 
+          type="button"
           onClick={toggleSidebar}
           className="md:hidden text-slate-500 hover:text-slate-900 focus:outline-none shrink-0"
         >
@@ -284,6 +285,7 @@ export function AdminHeader({ title, subtitle, badge, actions }: AdminHeaderProp
         {actions}
         <div className="relative" ref={ref}>
           <button
+            type="button"
             onClick={() => setOpen((o) => !o)}
             className="relative w-9 h-9 rounded-[10px] bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-900 transition-colors"
           >
@@ -301,6 +303,7 @@ export function AdminHeader({ title, subtitle, badge, actions }: AdminHeaderProp
                 <div className="flex items-center gap-2">
                   {unreadCount > 0 && (
                     <button
+                      type="button"
                       onClick={handleMarkAllRead}
                       className="text-xs text-[#4C1D95] hover:underline flex items-center gap-1"
                       title="Mark all as read"
@@ -322,6 +325,7 @@ export function AdminHeader({ title, subtitle, badge, actions }: AdminHeaderProp
                 ) : (
                   notifications.slice(0, 6).map((n) => (
                     <button
+                      type="button"
                       key={n.id}
                       onClick={() => handleMarkRead(n.id)}
                       className="w-full text-left px-4 py-3 border-b border-slate-50 hover:bg-slate-50 flex gap-2"

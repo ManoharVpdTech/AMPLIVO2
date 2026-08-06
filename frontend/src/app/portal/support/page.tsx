@@ -47,13 +47,14 @@ export default function SupportTicketsPage() {
       <div className="p-6 space-y-5">
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl p-4">
-            Couldn&apos;t load support tickets. <button onClick={load} className="underline font-medium">Retry</button>
+            Couldn&apos;t load support tickets. <button type="button" onClick={load} className="underline font-medium">Retry</button>
           </div>
         )}
 
         <div className="flex items-center justify-between">
           <p className="text-sm text-slate-500">{tickets.length} ticket{tickets.length !== 1 ? 's' : ''}</p>
           <button
+            type="button"
             onClick={() => setShowCreate(true)}
             className="flex items-center gap-2 bg-[#4C1D95] text-white text-sm font-medium px-4 py-2.5 rounded-xl hover:bg-[#3b1675] transition-colors"
           >
@@ -61,7 +62,7 @@ export default function SupportTicketsPage() {
           </button>
         </div>
 
-        <div className="bg-white rounded-2xl border border-slate-200 divide-y divide-slate-100">
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm divide-y divide-slate-100 overflow-hidden">
           {tickets.length === 0 ? (
             <div className="text-center py-16">
               <LifeBuoy size={32} className="mx-auto text-slate-300 mb-3" />
@@ -69,7 +70,7 @@ export default function SupportTicketsPage() {
             </div>
           ) : (
             tickets.map((t) => (
-              <button key={t.id} onClick={() => setSelected(t)} className="w-full text-left flex items-center justify-between gap-4 p-4.5 hover:bg-slate-50 transition-colors">
+              <button type="button" key={t.id} onClick={() => setSelected(t)} className="w-full text-left flex items-center justify-between gap-4 p-4.5 hover:bg-slate-50 transition-colors">
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold text-slate-900 text-sm truncate mb-1">{t.subject}</div>
                   <p className="text-xs text-slate-500 truncate mb-1.5">{t.description}</p>
@@ -161,8 +162,8 @@ function CreateTicketModal({ onClose, onCreated }: { onClose: () => void; onCrea
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" role="button" tabIndex={0} onClick={onClose} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClose(); }}>
+      <div className="bg-white rounded-2xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto" role="button" tabIndex={0} onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-bold text-slate-900">New Support Ticket</h3>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={18} /></button>
@@ -171,10 +172,11 @@ function CreateTicketModal({ onClose, onCreated }: { onClose: () => void; onCrea
           {errorMsg && <p className="text-sm text-red-600 bg-red-50 rounded-lg p-2">{errorMsg}</p>}
           <div>
             {/* BUG-012: Required asterisk on Subject label */}
-            <label className="block text-xs font-medium text-slate-500 mb-1">
+            <label htmlFor="ticket-subject" className="block text-xs font-medium text-slate-500 mb-1">
               Subject <span className="text-red-500">*</span>
             </label>
             <input
+              id="ticket-subject"
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
               required
@@ -184,10 +186,11 @@ function CreateTicketModal({ onClose, onCreated }: { onClose: () => void; onCrea
           </div>
           <div>
             {/* BUG-012: Required asterisk on Description label */}
-            <label className="block text-xs font-medium text-slate-500 mb-1">
+            <label htmlFor="ticket-desc" className="block text-xs font-medium text-slate-500 mb-1">
               Description <span className="text-red-500">*</span>
             </label>
             <textarea
+              id="ticket-desc"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               required
@@ -213,8 +216,9 @@ function CreateTicketModal({ onClose, onCreated }: { onClose: () => void; onCrea
 
           {/* BUG-013: Attachment upload field */}
           <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1">Attachment <span className="text-slate-400 font-normal">(optional)</span></label>
+            <label htmlFor="ticket-attach" className="block text-xs font-medium text-slate-500 mb-1">Attachment <span className="text-slate-400 font-normal">(optional)</span></label>
             <input
+              id="ticket-attach"
               ref={attachmentRef}
               type="file"
               accept="image/*,.pdf,.doc,.docx,.txt,.zip"
@@ -258,7 +262,7 @@ function CreateTicketModal({ onClose, onCreated }: { onClose: () => void; onCrea
               className="flex-1 bg-[#4C1D95] text-white rounded-lg py-2.5 text-sm font-medium disabled:opacity-60 flex items-center justify-center gap-2"
             >
               {(submitting || uploadingAttachment) && <Loader2 size={14} className="animate-spin" />}
-              {submitting ? 'Submitting...' : uploadingAttachment ? 'Uploading...' : 'Submit Ticket'}
+              {submitting ? 'Submitting...' : (uploadingAttachment ? 'Uploading...' : 'Submit Ticket')}
             </button>
           </div>
         </form>
@@ -298,7 +302,7 @@ function TicketDetailModal({ ticket, onClose }: { ticket: SupportTicketRead; onC
         <div className="flex items-center justify-between mb-2">
           {/* BUG-014: subject clearly separated from status badge */}
           <h3 className="font-bold text-slate-900 truncate">{ticket.subject}</h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 shrink-0 ml-2"><X size={18} /></button>
+          <button type="button" onClick={onClose} className="text-slate-400 hover:text-slate-600 shrink-0 ml-2"><X size={18} /></button>
         </div>
         <div className="flex items-center gap-2 mb-4">
           {/* BUG-014: StatusBadge is standalone, not part of text */}

@@ -5,7 +5,7 @@ import { analyticsService, seoService } from '@/services/moduleServices';
 import { clientService } from '@/services/crmService';
 import { useToastStore } from '@/store/toastStore';
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import { Search, Plus, Filter, FileText, Download, Share2, Calendar, LayoutTemplate, X, Loader2, AlertTriangle, Check, Copy } from 'lucide-react';
+import { Search, Plus, FileText, Download, Share2, Calendar, LayoutTemplate, X, Loader2, AlertTriangle, Check, Copy } from 'lucide-react';
 
 interface Report {
   id: string;
@@ -39,6 +39,37 @@ const TEMPLATES = [
 ];
 
 const INITIAL_FORM = { title: '', client: '', type: 'Monthly Review', status: 'draft', seoProject: '' };
+
+function renderSeoProjectSelector(
+  seoProjectsLoading: boolean,
+  seoProjects: Array<{ id: string; name: string }>,
+  value: string,
+  onChange: (val: string) => void
+) {
+  if (seoProjectsLoading) {
+    return (
+      <div className="flex items-center gap-2 py-2 text-xs text-slate-400">
+        <Loader2 size={14} className="animate-spin" /> Loading SEO projects...
+      </div>
+    );
+  }
+  if (seoProjects.length === 0) {
+    return <p className="text-xs text-slate-400 py-2">No SEO projects found</p>;
+  }
+  return (
+    <select
+      id="report-seo-project"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-[#4C1D95] bg-white cursor-pointer"
+    >
+      <option value="">Select SEO project...</option>
+      {seoProjects.map((p) => (
+        <option key={p.id} value={p.id}>{p.name}</option>
+      ))}
+    </select>
+  );
+}
 
 export default function AdminReports() {
   const [reports, setReports] = useState<Report[]>([]);
@@ -212,10 +243,13 @@ export default function AdminReports() {
         <div>
           <h2 className="text-sm font-bold text-slate-900 mb-4" style={{ fontFamily: "'Sora', sans-serif" }}>Report Templates</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {TEMPLATES.map((t, i) => (
+            {TEMPLATES.map((t) => (
               <div
-                key={i}
+                key={t.type}
+                role="button"
+                tabIndex={0}
                 onClick={() => handleLaunchTemplate(t.type, t.name)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleLaunchTemplate(t.type, t.name); }}
                 className="bg-white border border-slate-200 rounded-xl p-4 hover:border-[#4C1D95] hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
               >
                 <div>
@@ -250,7 +284,7 @@ export default function AdminReports() {
             <div className="p-12 flex flex-col items-center justify-center gap-3">
               <AlertTriangle size={32} className="text-red-400" />
               <span className="text-sm text-red-600">{error}</span>
-              <button onClick={fetchReports} className="mt-2 px-4 py-2 bg-red-50 text-red-600 text-sm font-semibold rounded-xl hover:bg-red-100 transition-colors">
+              <button type="button" onClick={fetchReports} className="mt-2 px-4 py-2 bg-red-50 text-red-600 text-sm font-semibold rounded-xl hover:bg-red-100 transition-colors">
                 Retry
               </button>
             </div>
@@ -303,6 +337,7 @@ export default function AdminReports() {
                       <td className="py-4 px-6 text-right">
                         <div className="flex justify-end gap-1">
                           <button
+                            type="button"
                             onClick={() => setShareReport(report)}
                             className="p-1.5 text-slate-400 hover:text-[#4C1D95] hover:bg-[#4C1D95]/10 rounded-lg transition-colors"
                             title="Share via Email / Link"
@@ -310,6 +345,7 @@ export default function AdminReports() {
                             <Share2 size={16} />
                           </button>
                           <button
+                            type="button"
                             onClick={() => handleDownloadReport(report)}
                             className="p-1.5 text-slate-400 hover:text-[#4C1D95] hover:bg-[#4C1D95]/10 rounded-lg transition-colors"
                             title="Download PDF"
@@ -329,11 +365,11 @@ export default function AdminReports() {
 
       {/* Share Report Modal (BUG-48) */}
       {shareReport && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setShareReport(null)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="button" tabIndex={0} onClick={() => setShareReport(null)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setShareReport(null); }}>
           <div className="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-md w-full p-6 space-y-4" onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
               <h3 className="font-bold text-slate-900">Share Report</h3>
-              <button onClick={() => setShareReport(null)} className="text-slate-400 hover:text-slate-600"><X size={18} /></button>
+              <button type="button" onClick={() => setShareReport(null)} className="text-slate-400 hover:text-slate-600"><X size={18} /></button>
             </div>
             <p className="text-xs text-slate-500">Share "{displayTitle(shareReport)}" with client stakeholders.</p>
             <div className="space-y-3">
@@ -345,6 +381,7 @@ export default function AdminReports() {
                   className="flex-1 px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-600 focus:outline-none"
                 />
                 <button
+                  type="button"
                   onClick={handleCopyShareLink}
                   className="px-3 py-2 bg-[#4C1D95] text-white rounded-xl text-xs font-semibold hover:bg-[#3b1574] flex items-center gap-1"
                 >
@@ -358,11 +395,11 @@ export default function AdminReports() {
 
       {/* Create Report Modal (BUG-46 & BUG-47 Fixed) */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={closeModal}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="button" tabIndex={0} onClick={closeModal} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') closeModal(); }}>
           <div className="bg-white rounded-2xl border border-slate-200 shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
               <h2 className="text-lg font-bold text-slate-900">Create Report</h2>
-              <button onClick={closeModal} className="p-1 text-slate-400 hover:text-slate-600 rounded-lg transition-colors">
+              <button type="button" onClick={closeModal} className="p-1 text-slate-400 hover:text-slate-600 rounded-lg transition-colors">
                 <X size={20} />
               </button>
             </div>
@@ -373,8 +410,9 @@ export default function AdminReports() {
                 </div>
               )}
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Report Title <span className="text-red-500">*</span></label>
+                <label htmlFor="report-title" className="block text-xs font-semibold text-slate-700 mb-1">Report Title <span className="text-red-500">*</span></label>
                 <input
+                  id="report-title"
                   type="text"
                   required
                   value={form.title}
@@ -384,8 +422,9 @@ export default function AdminReports() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Client</label>
+                <label htmlFor="report-client" className="block text-xs font-semibold text-slate-700 mb-1">Client</label>
                 <select
+                  id="report-client"
                   value={form.client}
                   onChange={(e) => setForm({ ...form, client: e.target.value })}
                   className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-[#4C1D95] bg-white cursor-pointer"
@@ -398,8 +437,9 @@ export default function AdminReports() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Type</label>
+                  <label htmlFor="report-type" className="block text-xs font-semibold text-slate-700 mb-1">Type</label>
                   <select
+                    id="report-type"
                     value={form.type}
                     onChange={(e) => setForm({ ...form, type: e.target.value })}
                     className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-[#4C1D95] bg-white"
@@ -411,8 +451,9 @@ export default function AdminReports() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Status</label>
+                  <label htmlFor="report-status" className="block text-xs font-semibold text-slate-700 mb-1">Status</label>
                   <select
+                    id="report-status"
                     value={form.status}
                     onChange={(e) => setForm({ ...form, status: e.target.value })}
                     className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-[#4C1D95] bg-white"
@@ -426,25 +467,8 @@ export default function AdminReports() {
               {/* AMP-011: SEO Project dropdown when type is SEO Audit */}
               {form.type === 'SEO Audit' && (
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">SEO Project</label>
-                  {seoProjectsLoading ? (
-                    <div className="flex items-center gap-2 py-2 text-xs text-slate-400">
-                      <Loader2 size={14} className="animate-spin" /> Loading SEO projects...
-                    </div>
-                  ) : seoProjects.length === 0 ? (
-                    <p className="text-xs text-slate-400 py-2">No SEO projects found</p>
-                  ) : (
-                    <select
-                      value={form.seoProject}
-                      onChange={(e) => setForm({ ...form, seoProject: e.target.value })}
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-[#4C1D95] bg-white cursor-pointer"
-                    >
-                      <option value="">Select SEO project...</option>
-                      {seoProjects.map((p) => (
-                        <option key={p.id} value={p.id}>{p.name}</option>
-                      ))}
-                    </select>
-                  )}
+                  <label htmlFor="report-seo-project" className="block text-xs font-semibold text-slate-700 mb-1">SEO Project</label>
+                  {renderSeoProjectSelector(seoProjectsLoading, seoProjects, form.seoProject, (seoProject) => setForm({ ...form, seoProject }))}
                 </div>
               )}
               <div className="flex justify-end gap-3 pt-2 pb-1">

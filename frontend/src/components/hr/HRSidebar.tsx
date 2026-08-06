@@ -113,7 +113,7 @@ export function HRSidebar() {
             </Link>
           </>
         )}
-        <button onClick={handleLogout} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[#9CA3AF] hover:bg-[#1F2937] hover:text-red-400 text-sm">
+        <button type="button" onClick={handleLogout} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[#9CA3AF] hover:bg-[#1F2937] hover:text-red-400 text-sm">
           <LogOut size={17} /> <span>Logout</span>
         </button>
       </div>

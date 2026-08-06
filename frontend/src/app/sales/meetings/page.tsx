@@ -183,7 +183,7 @@ export default function MeetingsPage() {
           {/* Bug 14 fixed: show lead selector before opening the meeting modal */}
           {!selectedLeadId ? (
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-              <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowModal(false)} />
+              <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" role="button" tabIndex={0} onClick={() => setShowModal(false)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setShowModal(false); }} />
               <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm border border-slate-200 p-6">
                 <h2 className="font-bold text-slate-900 text-lg mb-4">Select Lead</h2>
                 <select
@@ -197,8 +197,9 @@ export default function MeetingsPage() {
                   ))}
                 </select>
                 <div className="flex gap-3">
-                  <button onClick={() => setShowModal(false)} className="flex-1 px-4 py-2.5 border border-slate-200 text-slate-600 rounded-xl text-sm font-semibold hover:bg-slate-50">Cancel</button>
+                  <button type="button" onClick={() => setShowModal(false)} className="flex-1 px-4 py-2.5 border border-slate-200 text-slate-600 rounded-xl text-sm font-semibold hover:bg-slate-50">Cancel</button>
                   <button
+                    type="button"
                     disabled={!selectedLeadId}
                     onClick={() => { /* selectedLeadId is set, modal will render */ }}
                     className="flex-1 px-4 py-2.5 bg-[#4C1D95] text-white rounded-xl text-sm font-semibold hover:bg-[#3b1574] disabled:opacity-50"

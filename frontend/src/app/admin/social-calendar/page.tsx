@@ -4,7 +4,7 @@ import { AdminHeader } from '@/components/admin/AdminSidebar';
 import { socialService } from '@/services/moduleServices';
 import { useToastStore } from '@/store/toastStore';
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import { ChevronLeft, ChevronRight, Plus, Filter, Users, Check, Clock, X, Loader2, AlertTriangle, ChevronDown } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Users, Check, Clock, X, Loader2, AlertTriangle, ChevronDown } from 'lucide-react';
 import { FaInstagram, FaLinkedin, FaFacebook, FaTwitter } from 'react-icons/fa';
 
 interface SocialProfile {
@@ -222,14 +222,14 @@ export default function AdminSocialCalendar() {
 
             <div className="grid grid-cols-7 auto-rows-fr bg-slate-100 gap-px">
               {Array.from({ length: firstDay }).map((_, i) => (
-                <div key={`empty-${i}`} className="bg-slate-50 min-h-[100px] p-2" />
+                <div key={`empty-before-${String(i)}`} className="bg-slate-50 min-h-[100px] p-2" />
               ))}
               {Array.from({ length: daysInMonth }).map((_, i) => {
                 const dayNum = i + 1;
                 const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
                 const dayPosts = posts.filter((p) => {
                   const d = p.scheduled_date || p.date;
-                  return d && d.startsWith(dateKey);
+                  return d?.startsWith(dateKey);
                 });
 
                 return (
@@ -253,11 +253,11 @@ export default function AdminSocialCalendar() {
 
       {/* New Post Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setShowModal(false)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="button" tabIndex={0} onClick={() => setShowModal(false)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setShowModal(false); }}>
           <div className="bg-white rounded-2xl border border-slate-200 shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
               <h2 className="text-lg font-bold text-slate-900">New Social Post</h2>
-              <button onClick={() => setShowModal(false)} className="p-1 text-slate-400 hover:text-slate-600 rounded-lg transition-colors">
+              <button type="button" onClick={() => setShowModal(false)} className="p-1 text-slate-400 hover:text-slate-600 rounded-lg transition-colors">
                 <X size={20} />
               </button>
             </div>
@@ -266,8 +266,9 @@ export default function AdminSocialCalendar() {
                 <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3">{saveError}</div>
               )}
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Post Title <span className="text-red-500">*</span></label>
+                <label htmlFor="social-post-title" className="block text-xs font-semibold text-slate-600 mb-1">Post Title <span className="text-red-500">*</span></label>
                 <input
+                  id="social-post-title"
                   type="text"
                   required
                   value={form.title}
@@ -277,8 +278,9 @@ export default function AdminSocialCalendar() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Target Profile <span className="text-red-500">*</span></label>
+                <label htmlFor="social-target-profile" className="block text-xs font-semibold text-slate-600 mb-1">Target Profile <span className="text-red-500">*</span></label>
                 <select
+                  id="social-target-profile"
                   value={form.profile_id || (selectedProfileId !== 'all' ? selectedProfileId : '')}
                   onChange={(e) => setForm({ ...form, profile_id: e.target.value })}
                   className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-[#4C1D95] bg-white"
@@ -291,8 +293,9 @@ export default function AdminSocialCalendar() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Platform</label>
+                  <label htmlFor="social-platform" className="block text-xs font-semibold text-slate-600 mb-1">Platform</label>
                   <select
+                    id="social-platform"
                     value={form.platform}
                     onChange={(e) => setForm({ ...form, platform: e.target.value })}
                     className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-[#4C1D95] bg-white"
@@ -304,8 +307,9 @@ export default function AdminSocialCalendar() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Status</label>
+                  <label htmlFor="social-status" className="block text-xs font-semibold text-slate-600 mb-1">Status</label>
                   <select
+                    id="social-status"
                     value={form.status}
                     onChange={(e) => setForm({ ...form, status: e.target.value })}
                     className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-[#4C1D95] bg-white"
@@ -317,8 +321,9 @@ export default function AdminSocialCalendar() {
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Scheduled Date</label>
+                <label htmlFor="social-scheduled-date" className="block text-xs font-semibold text-slate-600 mb-1">Scheduled Date</label>
                 <input
+                  id="social-scheduled-date"
                   type="date"
                   value={form.scheduled_date}
                   onChange={(e) => setForm({ ...form, scheduled_date: e.target.value })}
@@ -326,8 +331,9 @@ export default function AdminSocialCalendar() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Content Body</label>
+                <label htmlFor="social-content-body" className="block text-xs font-semibold text-slate-600 mb-1">Content Body</label>
                 <textarea
+                  id="social-content-body"
                   rows={3}
                   value={form.content}
                   onChange={(e) => setForm({ ...form, content: e.target.value })}

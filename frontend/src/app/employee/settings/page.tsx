@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useCrmStore } from '@/store/crmStore';
 import { EmployeeHeader } from '@/components/employee/EmployeeHeader';
-import { Settings, User, Bell, Mail, Save, ExternalLink } from 'lucide-react';
+import { User, Bell, Mail, Save, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 
 export default function EmployeeSettings() {
@@ -119,6 +119,7 @@ export default function EmployeeSettings() {
             <div className="flex justify-end">
               {/* BUG-06 Fix: Save Changes button disabled when pristine */}
               <button 
+                type="button"
                 onClick={handleSaveProfile}
                 disabled={!isDirty || isSaved}
                 title={!isDirty ? "No changes to save" : undefined}

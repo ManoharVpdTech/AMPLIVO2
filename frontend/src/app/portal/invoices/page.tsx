@@ -18,6 +18,12 @@ interface Invoice {
   notes: string | null;
 }
 
+function getInvoiceStatusLabel(s: string, rawStatus: string): string {
+  if (s === 'sent' || s === 'pending' || s === 'unpaid') return 'Pending';
+  if (s === 'draft') return 'Draft';
+  return rawStatus ? rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1) : 'Pending';
+}
+
 export default function InvoicesPage() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
@@ -202,7 +208,7 @@ export default function InvoicesPage() {
                             </span>
                           );
                         }
-                        const label = (s === 'sent' || s === 'pending' || s === 'unpaid') ? 'Pending' : s === 'draft' ? 'Draft' : (invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1));
+                        const label = getInvoiceStatusLabel(s, invoice.status);
                         return (
                           <span className="inline-flex items-center gap-1.5 bg-amber-50 text-amber-700 border border-amber-200 text-xs font-bold px-2.5 py-1 rounded-full">
                             <Clock size={12} /> {label}
@@ -214,6 +220,7 @@ export default function InvoicesPage() {
                       <div className="flex items-center justify-center gap-2">
                         {!['paid', 'Paid', 'Completed'].includes(invoice.status) && (
                           <button
+                            type="button"
                             onClick={() => setPayInvoice(invoice)}
                             title="Pay Now"
                             aria-label={`Pay Now for invoice ${invoice.invoice_number}`}
@@ -223,6 +230,7 @@ export default function InvoicesPage() {
                           </button>
                         )}
                         <button
+                          type="button"
                           onClick={() => handleDownload(invoice)}
                           disabled={downloadingId === invoice.id}
                           title="Download Invoice PDF"
@@ -252,7 +260,7 @@ export default function InvoicesPage() {
   );
 }
 
-function PayNowModal({ invoice, onClose, onSuccess }: { invoice: Invoice; onClose: () => void; onSuccess: () => void }) {
+function PayNowModal({ invoice, onClose, onSuccess }: Readonly<{ invoice: Invoice; onClose: () => void; onSuccess: () => void }>) {
   const [method, setMethod] = useState<'card' | 'upi' | 'netbanking'>('card');
   const [submitting, setSubmitting] = useState(false);
   const showToast = useToastStore((s) => s.showToast);
@@ -266,7 +274,7 @@ function PayNowModal({ invoice, onClose, onSuccess }: { invoice: Invoice; onClos
       await financeService.submitClientPayment(invoice.id, {
         amount: invoice.total_amount,
         payment_method: method,
-        reference_number: `PAY-${Math.random().toString(36).substring(2, 9).toUpperCase()}`,
+        reference_number: `PAY-${Date.now().toString(36).toUpperCase()}`,
       });
       showToast('Payment submitted — awaiting verification by our finance team.', 'success');
       onSuccess();
@@ -280,11 +288,28 @@ function PayNowModal({ invoice, onClose, onSuccess }: { invoice: Invoice; onClos
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+    <div
+      role="button"
+      tabIndex={0}
+      className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"
+      onClick={onClose}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClose();
+        }
+      }}
+    >
+      <div
+        role="button"
+        tabIndex={0}
+        className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-bold text-slate-900 text-lg">Pay Invoice</h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={18} /></button>
+          <button type="button" onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={18} /></button>
         </div>
 
         <div className="bg-slate-50 rounded-xl p-4 mb-5 border border-slate-100">
@@ -294,8 +319,8 @@ function PayNowModal({ invoice, onClose, onSuccess }: { invoice: Invoice; onClos
         </div>
 
         <div className="space-y-3 mb-6">
-          <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider">Select Payment Method</label>
-          <div className="grid grid-cols-3 gap-2">
+          <label htmlFor="pay-method-select" className="block text-xs font-semibold text-slate-500 uppercase tracking-wider">Select Payment Method</label>
+          <div id="pay-method-select" className="grid grid-cols-3 gap-2">
             <button type="button" onClick={() => setMethod('card')} className={`p-3 rounded-xl border text-xs font-semibold flex flex-col items-center gap-1.5 transition-all ${method === 'card' ? 'border-[#4C1D95] bg-[#4C1D95]/5 text-[#4C1D95]' : 'border-slate-200 text-slate-600 hover:border-slate-300'}`}>
               <CreditCard size={18} /> Card
             </button>

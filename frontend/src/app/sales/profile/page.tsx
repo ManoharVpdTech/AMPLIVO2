@@ -92,8 +92,9 @@ export default function SalesProfilePage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Full Name</label>
+              <label htmlFor="profile-fullname" className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Full Name</label>
               <input
+                id="profile-fullname"
                 type="text"
                 value={form.fullName}
                 onChange={(e) => setForm({ ...form, fullName: e.target.value })}
@@ -112,10 +113,11 @@ export default function SalesProfilePage() {
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+              <label htmlFor="profile-phone" className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
                 <Phone size={11} className="inline mr-1" />Phone Number
               </label>
               <input
+                id="profile-phone"
                 type="tel"
                 value={form.phone}
                 onChange={(e) => setForm({ ...form, phone: e.target.value })}
@@ -124,10 +126,11 @@ export default function SalesProfilePage() {
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+              <label htmlFor="profile-designation" className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
                 <Briefcase size={11} className="inline mr-1" />Job Title
               </label>
               <input
+                id="profile-designation"
                 type="text"
                 value={form.designation}
                 onChange={(e) => setForm({ ...form, designation: e.target.value })}
@@ -136,10 +139,11 @@ export default function SalesProfilePage() {
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+              <label htmlFor="profile-timezone" className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
                 <Globe size={11} className="inline mr-1" />Timezone
               </label>
               <select
+                id="profile-timezone"
                 value={form.timezone}
                 onChange={(e) => setForm({ ...form, timezone: e.target.value })}
                 className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-[#4C1D95]/20 focus:border-[#4C1D95]"
@@ -148,8 +152,9 @@ export default function SalesProfilePage() {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Role &amp; Permissions</label>
+              <label htmlFor="profile-role" className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Role &amp; Permissions</label>
               <input
+                id="profile-role"
                 type="text"
                 value={user?.role === 'admin' ? 'Sales Admin' : 'Sales'}
                 disabled
@@ -159,6 +164,7 @@ export default function SalesProfilePage() {
           </div>
 
           <button
+            type="button"
             onClick={handleSave}
             disabled={saving}
             className="flex items-center gap-2 px-6 py-3 bg-[#4C1D95] text-white rounded-xl text-sm font-semibold hover:bg-[#3b1574] transition-colors disabled:opacity-50"

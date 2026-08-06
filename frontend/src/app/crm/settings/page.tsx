@@ -57,8 +57,9 @@ export default function CrmSettingsPage() {
             <form className="space-y-5" onSubmit={e => e.preventDefault()}>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-slate-400">Full Name <span className="text-red-500">*</span></label>
+                  <label htmlFor="crm-fullname" className="text-xs font-medium text-slate-400">Full Name <span className="text-red-500">*</span></label>
                   <input 
+                    id="crm-fullname"
                     type="text"
                     pattern="[A-Za-z\s]+"
                     title="Only letters and spaces are allowed"
@@ -68,8 +69,9 @@ export default function CrmSettingsPage() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-slate-400">Role</label>
+                  <label htmlFor="crm-role" className="text-xs font-medium text-slate-400">Role</label>
                   <input 
+                    id="crm-role"
                     type="text" 
                     defaultValue={user?.role || 'Admin'}
                     disabled
@@ -77,10 +79,11 @@ export default function CrmSettingsPage() {
                   />
                 </div>
                 <div className="space-y-1.5 sm:col-span-2">
-                  <label className="text-xs font-medium text-slate-400">Email Address <span className="text-red-500">*</span></label>
+                  <label htmlFor="crm-email" className="text-xs font-medium text-slate-400">Email Address <span className="text-red-500">*</span></label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                     <input 
+                      id="crm-email"
                       type="email" 
                       defaultValue={user?.email || 'crm@amplivo.in'}
                       className="w-full bg-white/5 border border-white/10 rounded-lg pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-violet-500/50"

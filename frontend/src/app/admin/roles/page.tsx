@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { AdminHeader } from '@/components/admin/AdminSidebar';
 import { userManagementService } from '@/services/crmService';
 import { useToastStore } from '@/store/toastStore';
-import { ShieldCheck, Plus, X, AlertTriangle, Edit2, Users, Loader2, Trash2, Check } from 'lucide-react';
+import { ShieldCheck, Plus, X, AlertTriangle, Edit2, Loader2, Trash2, Check } from 'lucide-react';
 
 interface Role {
   id: string;
@@ -198,6 +198,7 @@ export default function AdminRoles() {
       <div className="p-6 max-w-7xl mx-auto space-y-6">
         <div className="flex justify-end">
           <button
+            type="button"
             onClick={() => { setShowCreateForm(true); setNewRoleName(''); setNewRoleDesc(''); setCreateError(null); }}
             className="flex items-center gap-2 bg-[#4C1D95] text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-[#3b1574] transition-colors"
           >
@@ -216,7 +217,7 @@ export default function AdminRoles() {
           <div className="bg-white rounded-2xl border border-red-200 shadow-sm p-12 flex flex-col items-center justify-center gap-3">
             <AlertTriangle size={32} className="text-red-400" />
             <span className="text-sm text-red-600">{error}</span>
-            <button onClick={fetchRoles} className="mt-2 px-4 py-2 bg-red-50 text-red-600 text-sm font-semibold rounded-xl hover:bg-red-100 transition-colors">
+            <button type="button" onClick={fetchRoles} className="mt-2 px-4 py-2 bg-red-50 text-red-600 text-sm font-semibold rounded-xl hover:bg-red-100 transition-colors">
               Retry
             </button>
           </div>
@@ -235,7 +236,10 @@ export default function AdminRoles() {
               {roles.map((role) => (
                 <div
                   key={role.id}
+                  role="button"
+                  tabIndex={0}
                   onClick={() => selectRole(role.id)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') selectRole(role.id); }}
                   className={`bg-white border rounded-xl p-4 cursor-pointer transition-all ${
                     selectedRoleId === role.id
                       ? 'border-[#4C1D95] shadow-sm ring-1 ring-[#4C1D95]'
@@ -254,6 +258,7 @@ export default function AdminRoles() {
                         </span>
                       ) : (
                         <button
+                          type="button"
                           onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(role.id); }}
                           className="p-1 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
                           title="Delete role"
@@ -285,6 +290,7 @@ export default function AdminRoles() {
                   {/* BUG-50 Fixed: Edit Role Info button logic */}
                   {selectedRole && (
                     <button
+                      type="button"
                       onClick={() => handleEditRoleClick(selectedRole)}
                       className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg text-xs font-semibold transition-colors ${
                         selectedRole.is_system
@@ -299,15 +305,18 @@ export default function AdminRoles() {
                 </div>
 
                 <div className="p-6 space-y-6 flex-1 overflow-y-auto">
-                  {!selectedRole ? (
+                  {!selectedRole && (
                     <div className="text-center py-16 text-slate-400 text-sm">Select a role to view permissions matrix.</div>
-                  ) : loadingPerms ? (
+                  )}
+                  {selectedRole && loadingPerms && (
                     <div className="flex items-center justify-center py-16 text-slate-400">
                       <Loader2 size={24} className="animate-spin text-[#4C1D95]" />
                     </div>
-                  ) : Object.keys(groupedPerms).length === 0 ? (
+                  )}
+                  {selectedRole && !loadingPerms && Object.keys(groupedPerms).length === 0 && (
                     <div className="text-center py-16 text-slate-400 text-sm">No permissions registered in system.</div>
-                  ) : (
+                  )}
+                  {selectedRole && !loadingPerms && Object.keys(groupedPerms).length > 0 && (
                     Object.entries(groupedPerms).map(([mod, perms]) => (
                       <div key={mod} className="space-y-3">
                         <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100 pb-1">{mod}</h3>
@@ -317,7 +326,10 @@ export default function AdminRoles() {
                             return (
                               <div
                                 key={p.id}
+                                role="button"
+                                tabIndex={0}
                                 onClick={() => togglePermission(p.id)}
+                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') togglePermission(p.id); }}
                                 className={`p-3 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
                                   isGranted
                                     ? 'bg-[#4C1D95]/5 border-[#4C1D95]/30'
@@ -349,19 +361,20 @@ export default function AdminRoles() {
 
       {/* Create Custom Role Modal */}
       {showCreateForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setShowCreateForm(false)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="button" tabIndex={0} onClick={() => setShowCreateForm(false)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setShowCreateForm(false); }}>
           <div className="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-md w-full p-6 space-y-4" onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
               <h3 className="font-bold text-slate-900">Create Custom Role</h3>
-              <button onClick={() => setShowCreateForm(false)} className="text-slate-400 hover:text-slate-600"><X size={18} /></button>
+              <button type="button" onClick={() => setShowCreateForm(false)} className="text-slate-400 hover:text-slate-600"><X size={18} /></button>
             </div>
             <form onSubmit={handleCreateRole} className="space-y-4">
               {createError && (
                 <div className="bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl p-3">{createError}</div>
               )}
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Role Name <span className="text-red-500">*</span></label>
+                <label htmlFor="create-role-name" className="block text-xs font-semibold text-slate-600 mb-1">Role Name <span className="text-red-500">*</span></label>
                 <input
+                  id="create-role-name"
                   type="text"
                   required
                   value={newRoleName}
@@ -371,8 +384,9 @@ export default function AdminRoles() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Description</label>
+                <label htmlFor="create-role-desc" className="block text-xs font-semibold text-slate-600 mb-1">Description</label>
                 <textarea
+                  id="create-role-desc"
                   rows={3}
                   value={newRoleDesc}
                   onChange={(e) => setNewRoleDesc(e.target.value)}
@@ -393,16 +407,17 @@ export default function AdminRoles() {
 
       {/* Edit Custom Role Info Modal */}
       {editRoleModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setEditRoleModal(null)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="button" tabIndex={0} onClick={() => setEditRoleModal(null)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setEditRoleModal(null); }}>
           <div className="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-md w-full p-6 space-y-4" onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
               <h3 className="font-bold text-slate-900">Edit Role Info</h3>
-              <button onClick={() => setEditRoleModal(null)} className="text-slate-400 hover:text-slate-600"><X size={18} /></button>
+              <button type="button" onClick={() => setEditRoleModal(null)} className="text-slate-400 hover:text-slate-600"><X size={18} /></button>
             </div>
             <form onSubmit={handleEditRoleSave} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Role Name <span className="text-red-500">*</span></label>
+                <label htmlFor="edit-role-name" className="block text-xs font-semibold text-slate-600 mb-1">Role Name <span className="text-red-500">*</span></label>
                 <input
+                  id="edit-role-name"
                   type="text"
                   required
                   value={newRoleName}
@@ -411,8 +426,9 @@ export default function AdminRoles() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Description</label>
+                <label htmlFor="edit-role-desc" className="block text-xs font-semibold text-slate-600 mb-1">Description</label>
                 <textarea
+                  id="edit-role-desc"
                   rows={3}
                   value={newRoleDesc}
                   onChange={(e) => setNewRoleDesc(e.target.value)}

@@ -59,11 +59,11 @@ function mapLeadStatus(status: string): SalesLeadStatus {
 
 function parseBudgetFromNotes(notes: string | null | undefined): number {
   if (!notes) return 0;
-  const regex = /Budget:\s*(?:₹|INR)?\s*([0-9,]+)/i;
-  const match = notes.match(regex);
+  const regex = /Budget:\s*(?:₹|INR)?\s*([\d,]+)/i;
+  const match = regex.exec(notes);
   if (match) {
-    const val = parseInt(match[1].replace(/,/g, ''), 10);
-    if (!isNaN(val)) {
+    const val = Number.parseInt(match[1].replaceAll(',', ''), 10);
+    if (!Number.isNaN(val)) {
       return val;
     }
   }
@@ -81,7 +81,7 @@ function getTimeZoneOffset(timeZone: string, date: Date = new Date()): string {
     if (!tzPart) return 'Z';
     const val = tzPart.value;
     if (val === 'GMT') return '+00:00';
-    const match = val.match(/GMT([+-])(\d+):?(\d+)?/);
+    const match = /GMT([+-])(\d+):?(\d+)?/.exec(val);
     if (match) {
       const sign = match[1];
       const hours = match[2].padStart(2, '0');
@@ -112,33 +112,33 @@ function mapSource(sourceId: string | null | undefined): SalesLead['source'] {
 }
 
 function mapMeetingRead(m: Record<string, unknown>): Meeting {
-  const scheduledAt = String(m.scheduled_at || '');
+  const scheduledAt = typeof m.scheduled_at === 'string' ? m.scheduled_at : String(m.scheduled_at ?? '');
   const datePart = scheduledAt.split('T')[0] || '';
   const timePart = scheduledAt.split('T')[1]?.slice(0, 5) || '';
-  const typeRaw = String(m.meeting_type || 'Video Call');
+  const typeRaw = typeof m.meeting_type === 'string' ? m.meeting_type : String(m.meeting_type ?? 'Video Call');
   const typeMap: Record<string, Meeting['type']> = {
     video_call: 'Video Call', video: 'Video Call',
     phone_call: 'Phone Call', phone: 'Phone Call',
     in_person: 'In-Person', in_person_meeting: 'In-Person',
     demo: 'Demo',
   };
-  const meetingType: Meeting['type'] = typeMap[typeRaw.toLowerCase().replace(/ /g, '_')] ?? 'Video Call';
-  const statusRaw = String(m.status || 'scheduled').toLowerCase();
+  const meetingType: Meeting['type'] = typeMap[typeRaw.toLowerCase().replaceAll(' ', '_')] ?? 'Video Call';
+  const statusRaw = (typeof m.status === 'string' ? m.status : String(m.status ?? 'scheduled')).toLowerCase();
   const statusMap: Record<string, Meeting['status']> = {
     scheduled: 'Scheduled', completed: 'Completed',
     cancelled: 'Cancelled', no_show: 'No-Show',
   };
   return {
-    id: String(m.id || ''),
-    leadId: String(m.lead_id || ''),
-    leadName: String(m.lead_name || m.title || ''),
-    company: String(m.company || ''),
+    id: typeof m.id === 'string' ? m.id : String(m.id ?? ''),
+    leadId: typeof m.lead_id === 'string' ? m.lead_id : String(m.lead_id ?? ''),
+    leadName: typeof m.lead_name === 'string' ? m.lead_name : typeof m.title === 'string' ? m.title : String(m.title ?? ''),
+    company: typeof m.company === 'string' ? m.company : String(m.company ?? ''),
     date: datePart,
     time: timePart,
     duration: Number(m.duration_minutes || 60),
     type: meetingType,
     status: statusMap[statusRaw] ?? 'Scheduled',
-    notes: String(m.notes || ''),
+    notes: typeof m.notes === 'string' ? m.notes : String(m.notes ?? ''),
     agenda: m.agenda ? String(m.agenda) : undefined,
     followUpRequired: Boolean(m.follow_up_required),
     timezone: m.timezone ? String(m.timezone) : undefined,
@@ -188,26 +188,27 @@ function mapInvoiceStatus(status: string): SalesInvoice['status'] {
 }
 
 function mapInvoiceRead(inv: Record<string, unknown>, leadsById: Map<string, SalesLead>): SalesInvoice {
-  const leadId = String(inv.lead_id || '');
+  const leadId = typeof inv.lead_id === 'string' ? inv.lead_id : String(inv.lead_id ?? '');
   const lead = leadsById.get(leadId);
   const subtotal = Number(inv.subtotal || 0);
   const taxTotal = Number(inv.tax_total || 0);
   const total = Number(inv.total_amount || 0);
-  const invoiceType = String(inv.invoice_type || 'standard');
+  const invoiceType = typeof inv.invoice_type === 'string' ? inv.invoice_type : String(inv.invoice_type ?? 'standard');
+  const invNotes = typeof inv.notes === 'string' ? inv.notes : String(inv.notes ?? '');
   return {
-    id: String(inv.id || ''),
-    invoiceNumber: String(inv.invoice_number || ''),
+    id: typeof inv.id === 'string' ? inv.id : String(inv.id ?? ''),
+    invoiceNumber: typeof inv.invoice_number === 'string' ? inv.invoice_number : String(inv.invoice_number ?? ''),
     leadId,
     clientName: lead ? `${lead.firstName} ${lead.lastName}`.trim() : '',
     clientEmail: lead?.email || '',
     clientPhone: lead?.phone || '',
     company: lead?.company || '',
-    issueDate: String(inv.issue_date || ''),
-    dueDate: String(inv.due_date || ''),
+    issueDate: typeof inv.issue_date === 'string' ? inv.issue_date : String(inv.issue_date ?? ''),
+    dueDate: typeof inv.due_date === 'string' ? inv.due_date : String(inv.due_date ?? ''),
     lineItems: [{
       serviceId: invoiceType,
       serviceName: invoiceType.charAt(0).toUpperCase() + invoiceType.slice(1) + ' Invoice',
-      description: String(inv.notes || ''),
+      description: invNotes,
       quantity: 1,
       unitPrice: subtotal,
       total: subtotal,
@@ -218,8 +219,8 @@ function mapInvoiceRead(inv: Record<string, unknown>, leadsById: Map<string, Sal
     grandTotal: total,
     advancePercent: invoiceType === 'advance' ? 25 : 0,
     advanceDue: total,
-    status: mapInvoiceStatus(String(inv.status || 'draft')),
-    notes: String(inv.notes || ''),
+    status: mapInvoiceStatus(typeof inv.status === 'string' ? inv.status : String(inv.status ?? 'draft')),
+    notes: invNotes,
   };
 }
 
@@ -433,15 +434,16 @@ export const useSalesStore = create<SalesState>((set, get) => ({
     // total_deal_amount is validated server-side as gt=0 (see
     // AdvanceInvoiceCreateRequest) - failing fast here with a clear message
     // is the fix for the 422, instead of ever sending a 0/negative amount.
-    if (!(lead.budget > 0)) {
+    if (lead.budget <= 0) {
       throw new Error('Set a budget greater than ₹0 for this lead before generating an invoice.');
     }
 
     // Backend requires a Proposal to exist before the advance invoice can
     // reference it (see migration 0020) - the deal amount comes from the
     // lead's own budget field, matching what this page already shows.
+    const proposalTitleName = `${lead.firstName} ${lead.lastName}`.trim();
     const proposal = await proposalService.createForLead(leadId, {
-      title: `Proposal for ${lead.company || `${lead.firstName} ${lead.lastName}`}`,
+      title: `Proposal for ${lead.company || proposalTitleName}`,
       description: lead.interestedServices.join(', ') || undefined,
       amount: lead.budget,
     });

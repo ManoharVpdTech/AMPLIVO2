@@ -72,8 +72,9 @@ export default function HRSettingsPage() {
 
           <div className="flex-1 min-w-[280px] grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Display Name</label>
+              <label htmlFor="hr-settings-name" className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Display Name</label>
               <input
+                id="hr-settings-name"
                 type="text"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -81,10 +82,11 @@ export default function HRSettingsPage() {
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+              <label htmlFor="hr-settings-email" className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
                 <Mail size={11} className="inline mr-1" />Email
               </label>
               <input
+                id="hr-settings-email"
                 type="email"
                 value={user?.email ?? ''}
                 disabled
@@ -92,10 +94,11 @@ export default function HRSettingsPage() {
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+              <label htmlFor="hr-settings-phone" className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
                 <Phone size={11} className="inline mr-1" />Phone Number
               </label>
               <input
+                id="hr-settings-phone"
                 type="tel"
                 value={form.phone}
                 onChange={(e) => setForm({ ...form, phone: e.target.value })}
@@ -104,10 +107,11 @@ export default function HRSettingsPage() {
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+              <label htmlFor="hr-settings-ext" className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
                 <Hash size={11} className="inline mr-1" />Extension
               </label>
               <input
+                id="hr-settings-ext"
                 type="text"
                 value={form.extension}
                 onChange={(e) => setForm({ ...form, extension: e.target.value })}
@@ -116,10 +120,11 @@ export default function HRSettingsPage() {
               />
             </div>
             <div className="sm:col-span-2">
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+              <label htmlFor="hr-settings-title" className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
                 <Briefcase size={11} className="inline mr-1" />Job Title
               </label>
               <input
+                id="hr-settings-title"
                 type="text"
                 value={form.designation}
                 onChange={(e) => setForm({ ...form, designation: e.target.value })}
@@ -128,10 +133,11 @@ export default function HRSettingsPage() {
               />
             </div>
             <div className="sm:col-span-2">
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+              <label htmlFor="hr-settings-signature" className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
                 <PenLine size={11} className="inline mr-1" />Email Signature
               </label>
               <textarea
+                id="hr-settings-signature"
                 value={form.signature}
                 onChange={(e) => setForm({ ...form, signature: e.target.value })}
                 rows={3}
@@ -145,6 +151,7 @@ export default function HRSettingsPage() {
 
         <div className="flex justify-end mt-6 pt-4 border-t border-slate-100">
           <button
+            type="button"
             onClick={handleSaveProfile}
             className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-colors ${
               saved ? 'bg-emerald-600' : 'bg-[#4C1D95] hover:bg-[#3B1574]'

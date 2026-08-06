@@ -93,7 +93,7 @@ export function EmployeeSidebar() {
 
       <div className="px-4 py-4 border-t border-[#1F2937]">
         <div className="flex gap-2">
-          <button onClick={handleLogout} className="flex items-center gap-2 px-3 py-2 rounded-[10px] text-[#9CA3AF] hover:bg-[#1F2937] hover:text-red-400 transition-all text-xs flex-1">
+          <button type="button" onClick={handleLogout} className="flex items-center gap-2 px-3 py-2 rounded-[10px] text-[#9CA3AF] hover:bg-[#1F2937] hover:text-red-400 transition-all text-xs flex-1">
             <LogOut size={14} /> Sign Out
           </button>
           <Link href="/employee/settings" className={`flex items-center justify-center w-9 h-9 rounded-[10px] transition-all ${pathname === '/employee/settings' ? 'bg-[#4C1D95] text-white' : 'text-[#9CA3AF] hover:bg-[#1F2937] hover:text-white'}`}>

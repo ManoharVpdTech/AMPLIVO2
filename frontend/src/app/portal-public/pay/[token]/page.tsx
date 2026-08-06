@@ -23,7 +23,7 @@ function extractErrorMessage(err: unknown): string {
   return 'Something went wrong. Please try again.';
 }
 
-export default function PublicPayInvoicePage({ params }: { params: Promise<{ token: string }> }) {
+export default function PublicPayInvoicePage({ params }: Readonly<{ params: Promise<{ token: string }> }>) {
   const { token } = use(params);
 
   const [invoice, setInvoice] = useState<PublicInvoice | null>(null);
@@ -108,29 +108,33 @@ export default function PublicPayInvoicePage({ params }: { params: Promise<{ tok
           <div className="flex justify-between"><span className="text-slate-500">Due date</span><span className="text-slate-700">{invoice.due_date}</span></div>
         </div>
 
-        {submitted ? (
+        {submitted && (
           <div className="text-center py-6">
             <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto mb-3" />
             <p className="font-semibold text-slate-800">Payment proof submitted.</p>
             <p className="text-sm text-slate-500 mt-1">Our finance team will verify it shortly.</p>
           </div>
-        ) : invoice.balance_due <= 0 ? (
+        )}
+        {!submitted && invoice.balance_due <= 0 && (
           <div className="text-center py-6">
             <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto mb-3" />
             <p className="font-semibold text-slate-800">This invoice is fully paid.</p>
           </div>
-        ) : (
+        )}
+        {!submitted && invoice.balance_due > 0 && (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Amount paid</label>
+              <label htmlFor="pay-amount" className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Amount paid</label>
               <input
+                id="pay-amount"
                 type="number" min={0} step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)}
                 className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#4C1D95]/20 focus:border-[#4C1D95]"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Payment method</label>
+              <label htmlFor="pay-method" className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Payment method</label>
               <select
+                id="pay-method"
                 value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}
                 className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#4C1D95]/20 focus:border-[#4C1D95]"
               >
@@ -142,8 +146,9 @@ export default function PublicPayInvoicePage({ params }: { params: Promise<{ tok
               </select>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Reference / transaction number</label>
+              <label htmlFor="pay-ref" className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Reference / transaction number</label>
               <input
+                id="pay-ref"
                 type="text" value={referenceNumber} onChange={(e) => setReferenceNumber(e.target.value)}
                 placeholder="e.g. UTR / UPI ref"
                 className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#4C1D95]/20 focus:border-[#4C1D95]"

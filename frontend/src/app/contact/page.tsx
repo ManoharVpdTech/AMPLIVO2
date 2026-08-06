@@ -52,7 +52,7 @@ export default function ContactPage() {
     if (!form.name.trim()) errs.name = 'Full name is required';
     if (!form.email.trim()) {
       errs.email = 'Business email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+    } else if (!/^\S+@\S+\.\S+$/.test(form.email.trim())) {
       errs.email = 'Please enter a valid email address';
     }
     if (!form.phone.trim()) errs.phone = 'Phone number is required';
@@ -157,10 +157,11 @@ export default function ContactPage() {
                       </div>
                     )}
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                       <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1.5">Full Name <span className="text-red-500">*</span></label>
+                        <label htmlFor="contact-name" className="block text-sm font-medium text-slate-700 mb-1.5">Full Name <span className="text-red-500">*</span></label>
                         <input
+                          id="contact-name"
                           type="text"
                           name="name"
                           value={form.name}
@@ -173,8 +174,9 @@ export default function ContactPage() {
                         {fieldErrors.name && <p className="text-red-500 text-xs mt-1">{fieldErrors.name}</p>}
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1.5">Company</label>
+                        <label htmlFor="contact-company" className="block text-sm font-medium text-slate-700 mb-1.5">Company</label>
                         <input
+                          id="contact-company"
                           type="text"
                           name="company"
                           value={form.company}
@@ -187,8 +189,9 @@ export default function ContactPage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1.5">Business Email <span className="text-red-500">*</span></label>
+                      <label htmlFor="contact-email" className="block text-sm font-medium text-slate-700 mb-1.5">Business Email <span className="text-red-500">*</span></label>
                       <input
+                        id="contact-email"
                         type="email"
                         name="email"
                         value={form.email}
@@ -200,8 +203,9 @@ export default function ContactPage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1.5">Phone Number <span className="text-red-500">*</span></label>
+                      <label htmlFor="contact-phone" className="block text-sm font-medium text-slate-700 mb-1.5">Phone Number <span className="text-red-500">*</span></label>
                       <PhoneInput
+                        id="contact-phone"
                         value={form.phone}
                         onChange={(val) => {
                           setForm(prev => ({ ...prev, phone: val || '' }));
@@ -213,8 +217,9 @@ export default function ContactPage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1.5">Service Required <span className="text-red-500">*</span></label>
+                      <label htmlFor="contact-service" className="block text-sm font-medium text-slate-700 mb-1.5">Service Required <span className="text-red-500">*</span></label>
                       <select
+                        id="contact-service"
                         name="service_interest"
                         value={form.service_interest}
                         onChange={handleChange}
@@ -237,8 +242,9 @@ export default function ContactPage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1.5">Monthly Budget Range <span className="text-red-500">*</span></label>
+                      <label htmlFor="contact-budget" className="block text-sm font-medium text-slate-700 mb-1.5">Monthly Budget Range <span className="text-red-500">*</span></label>
                       <select
+                        id="contact-budget"
                         name="budget_range"
                         value={form.budget_range}
                         onChange={handleChange}
@@ -255,8 +261,9 @@ export default function ContactPage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1.5">Message <span className="text-red-500">*</span></label>
+                      <label htmlFor="contact-message" className="block text-sm font-medium text-slate-700 mb-1.5">Message <span className="text-red-500">*</span></label>
                       <textarea
+                        id="contact-message"
                         name="message"
                         value={form.message}
                         onChange={handleChange}

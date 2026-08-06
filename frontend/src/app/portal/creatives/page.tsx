@@ -219,6 +219,7 @@ export default function PortalCreatives() {
                       </button>
                       {/* BUG-07: "Changes" now opens RequestChangesModal, not comment thread */}
                       <button
+                        type="button"
                         onClick={() => setShowRequestChangesModal(asset)}
                         className="flex items-center justify-center gap-1 py-2 rounded-xl border border-amber-200 bg-amber-50 text-amber-700 text-sm font-semibold hover:bg-amber-100 transition-colors"
                       >
@@ -245,6 +246,7 @@ export default function PortalCreatives() {
                       ) : (
                         /* BUG-07: "Request Changes" now opens proper confirmation modal */
                         <button
+                          type="button"
                           onClick={() => setShowRequestChangesModal(asset)}
                           className="flex items-center justify-center gap-1 py-2 rounded-xl border border-amber-200 bg-amber-50 text-amber-700 text-sm font-semibold hover:bg-amber-100 transition-colors"
                         >
@@ -352,17 +354,17 @@ function RejectModal({ asset, onConfirm, onCancel, loading }: { asset: AssetWith
 }
 
 // BUG-07: Dedicated Request Changes modal — separate from comment thread
-function RequestChangesModal({ asset, onConfirm, onCancel, loading }: { asset: AssetWithProject; onConfirm: (details: string) => void; onCancel: () => void; loading: boolean }) {
+function RequestChangesModal({ asset, onConfirm, onCancel, loading }: Readonly<{ asset: AssetWithProject; onConfirm: (details: string) => void; onCancel: () => void; loading: boolean }>) {
   const [details, setDetails] = useState('');
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onClick={onCancel}>
-      <div className="bg-white rounded-2xl w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" role="button" tabIndex={0} onClick={onCancel} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onCancel(); }}>
+      <div className="bg-white rounded-2xl w-full max-w-md p-6" role="button" tabIndex={0} onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-1">
           <h3 className="font-bold text-slate-900 flex items-center gap-2">
             <AlertTriangle size={18} className="text-amber-500" />
             Request Changes
           </h3>
-          <button onClick={onCancel} className="text-slate-400 hover:text-slate-600"><X size={18} /></button>
+          <button type="button" onClick={onCancel} className="text-slate-400 hover:text-slate-600"><X size={18} /></button>
         </div>
         <p className="text-sm text-slate-500 mb-4">
           You are requesting changes to <strong className="text-slate-700">{asset.name}</strong>. Please describe what you&apos;d like adjusted.
@@ -378,8 +380,9 @@ function RequestChangesModal({ asset, onConfirm, onCancel, loading }: { asset: A
           <p className="text-xs text-slate-400 mt-1.5">Please describe the requested changes before submitting.</p>
         )}
         <div className="flex gap-3 pt-4">
-          <button onClick={onCancel} className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-slate-50 transition-colors">Cancel</button>
+          <button type="button" onClick={onCancel} className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-slate-50 transition-colors">Cancel</button>
           <button
+            type="button"
             onClick={() => onConfirm(details)}
             disabled={loading || !details.trim()}
             className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-amber-500 text-white text-sm font-semibold hover:bg-amber-600 transition-colors disabled:opacity-50"

@@ -31,6 +31,7 @@ export default function PortfolioPage() {
           <div className="flex flex-wrap gap-2 justify-center mb-12">
             {portfolioCategories.map((cat) => (
               <button
+                type="button"
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-all hover:-translate-y-0.5 ${
@@ -49,8 +50,16 @@ export default function PortfolioPage() {
               {filteredItems.map((item, i) => (
                 <AnimateOnScroll key={item.id} animation="scale-in" delay={i * 60}>
                 <div
+                  role="button"
+                  tabIndex={0}
                   className={`relative group overflow-hidden rounded-2xl cursor-pointer card-hover ${i === 0 ? 'md:col-span-2 md:row-span-1' : ''}`}
                   onClick={() => setSelectedItem(item)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setSelectedItem(item);
+                    }
+                  }}
                 >
                   <div className="w-full overflow-hidden h-64 sm:h-72">
                     <img
@@ -88,10 +97,22 @@ export default function PortfolioPage() {
       {/* Modal */}
       {selectedItem && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-[#000000]/80 backdrop-blur-sm" onClick={() => setSelectedItem(null)}></div>
+          <div
+            role="button"
+            tabIndex={0}
+            className="absolute inset-0 bg-[#000000]/80 backdrop-blur-sm"
+            onClick={() => setSelectedItem(null)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setSelectedItem(null);
+              }
+            }}
+          />
           <div className="relative bg-white rounded-3xl w-full max-w-4xl overflow-hidden flex flex-col md:flex-row shadow-2xl anim-scale-in">
             {/* Close button */}
             <button 
+              type="button"
               onClick={() => setSelectedItem(null)}
               className="absolute top-4 right-4 z-10 bg-[#000000]/20 hover:bg-[#000000]/40 text-white md:text-slate-800 md:bg-slate-100 md:hover:bg-slate-200 p-2 rounded-full backdrop-blur-md transition-colors"
             >

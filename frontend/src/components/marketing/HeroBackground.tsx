@@ -12,24 +12,27 @@ interface HeroBackgroundProps {
   decoration?: HeroDecoration;
 }
 
-export function HeroBackground({ type, src, images, decoration }: HeroBackgroundProps) {
+export function HeroBackground({ type, src, images, decoration }: Readonly<HeroBackgroundProps>) {
+  let content = <AnimatedGradientBg />;
+  if (type === 'ken-burns' && images && images.length > 0) {
+    content = <KenBurnSlideshow images={images} />;
+  } else if (src) {
+    content = (
+      <Image
+        src={src}
+        alt=""
+        fill
+        priority
+        className="object-cover"
+        sizes="100vw"
+      />
+    );
+  }
+
   return (
     <>
       {/* Layer 1: Background image or gradient fallback */}
-      {type === 'ken-burns' && images && images.length > 0 ? (
-        <KenBurnSlideshow images={images} />
-      ) : src ? (
-        <Image
-          src={src}
-          alt=""
-          fill
-          priority
-          className="object-cover"
-          sizes="100vw"
-        />
-      ) : (
-        <AnimatedGradientBg />
-      )}
+      {content}
 
       {/* Layer 2: Decoration overlay (subtle CSS animation on top of image) */}
       {decoration && decoration !== 'none' && (
@@ -46,7 +49,7 @@ export function HeroBackground({ type, src, images, decoration }: HeroBackground
 /* ──────────────────────────────────────────────
    Ken Burns Slideshow
    ────────────────────────────────────────────── */
-function KenBurnSlideshow({ images }: { images: string[] }) {
+function KenBurnSlideshow({ images }: Readonly<{ images: string[] }>) {
   const items = useMemo(
     () => images.slice(0, 4).map((src, i) => ({ src, id: i })),
     [images],
@@ -155,7 +158,7 @@ function DashboardMotion() {
       <div className="flex items-end gap-3 h-[200px]">
         {bars.map((bar, i) => (
           <div
-            key={i}
+            key={`bar-${bar.d}-${i}`}
             className="w-6 rounded-t-md animate-chart-rise"
             style={{
               height: bar.h,
@@ -198,7 +201,7 @@ function NetworkMap() {
       <svg className="h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
         {lines.map((line, i) => (
           <line
-            key={i}
+            key={`line-${line.x1}-${line.y1}-${line.x2}-${line.y2}-${i}`}
             x1={line.x1}
             y1={line.y1}
             x2={line.x2}
@@ -212,7 +215,7 @@ function NetworkMap() {
       </svg>
       {nodes.map((node, i) => (
         <div
-          key={i}
+          key={`node-${node.x}-${node.y}-${i}`}
           className="absolute h-2 w-2 rounded-full bg-[#06B6D4] animate-pulse-node"
           style={{
             left: node.x,

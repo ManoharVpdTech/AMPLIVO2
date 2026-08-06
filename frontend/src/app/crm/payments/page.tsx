@@ -7,6 +7,58 @@ import {
 import { useCrmStore } from '@/store/crmStore';
 import { useToastStore } from '@/store/toastStore';
 
+function getPaymentStatusBadgeClass(status: string): string {
+  if (status === 'Paid') return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+  if (status === 'Processing') return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
+  if (status === 'Failed') return 'bg-red-500/10 text-red-400 border-red-500/20';
+  return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
+}
+
+function renderPaymentVerification(
+  payment: { status: string; verifiedAt?: string; financeVerifiedAt?: string; id: string },
+  busyId: string | null,
+  handleVerify: (id: string) => void,
+  handleReject: (id: string) => void
+) {
+  if (payment.status === 'Paid') {
+    return (
+      <div className="text-xs">
+        <p className="text-emerald-400 flex items-center justify-end gap-1"><CheckCircle className="w-3 h-3" /> Verified</p>
+        <p className="text-slate-500 mt-0.5">{payment.verifiedAt}</p>
+      </div>
+    );
+  }
+  if (payment.status === 'Failed') {
+    return <span className="text-xs text-red-400 flex items-center justify-end gap-1"><AlertCircle className="w-3 h-3" /> Failed</span>;
+  }
+  if (payment.status === 'Pending') {
+    return <span className="text-xs text-amber-400 flex items-center justify-end gap-1"><Clock className="w-3 h-3" /> Awaiting payment</span>;
+  }
+  return (
+    <div className="flex items-center justify-end gap-2">
+      <span className="text-[10px] text-slate-500">
+        {payment.financeVerifiedAt ? 'Awaiting CRM sign-off' : 'Awaiting Finance verification'}
+      </span>
+      <button
+        type="button"
+        onClick={() => handleVerify(payment.id)}
+        disabled={busyId === payment.id}
+        className="inline-flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white transition-colors"
+      >
+        Verify <CheckCircle className="w-3 h-3" />
+      </button>
+      <button
+        type="button"
+        onClick={() => handleReject(payment.id)}
+        disabled={busyId === payment.id}
+        className="inline-flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded bg-red-600/80 hover:bg-red-500 disabled:opacity-50 text-white transition-colors"
+      >
+        Reject <XCircle className="w-3 h-3" />
+      </button>
+    </div>
+  );
+}
+
 export default function CrmPaymentsPage() {
   const { payments, verifyPayment, rejectPayment } = useCrmStore();
   const showToast = useToastStore((s) => s.showToast);
@@ -151,46 +203,12 @@ export default function CrmPaymentsPage() {
                     <p className="text-xs font-mono text-slate-500 mt-0.5">{payment.transactionId || '—'}</p>
                   </td>
                   <td className="px-5 py-4 text-center">
-                    <span className={`text-[10px] px-2.5 py-1 rounded-full border font-medium ${
-                      payment.status === 'Paid' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
-                      payment.status === 'Processing' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
-                      payment.status === 'Failed' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
-                      'bg-amber-500/10 text-amber-400 border-amber-500/20'
-                    }`}>
+                    <span className={`text-[10px] px-2.5 py-1 rounded-full border font-medium ${getPaymentStatusBadgeClass(payment.status)}`}>
                       {payment.status}
                     </span>
                   </td>
                   <td className="px-5 py-4 text-right">
-                    {payment.status === 'Paid' ? (
-                      <div className="text-xs">
-                        <p className="text-emerald-400 flex items-center justify-end gap-1"><CheckCircle className="w-3 h-3" /> Verified</p>
-                        <p className="text-slate-500 mt-0.5">{payment.verifiedAt}</p>
-                      </div>
-                    ) : payment.status === 'Failed' ? (
-                      <span className="text-xs text-red-400 flex items-center justify-end gap-1"><AlertCircle className="w-3 h-3" /> Failed</span>
-                    ) : payment.status === 'Pending' ? (
-                      <span className="text-xs text-amber-400 flex items-center justify-end gap-1"><Clock className="w-3 h-3" /> Awaiting payment</span>
-                    ) : (
-                      <div className="flex items-center justify-end gap-2">
-                        <span className="text-[10px] text-slate-500">
-                          {payment.financeVerifiedAt ? 'Awaiting CRM sign-off' : 'Awaiting Finance verification'}
-                        </span>
-                        <button
-                          onClick={() => handleVerify(payment.id)}
-                          disabled={busyId === payment.id}
-                          className="inline-flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white transition-colors"
-                        >
-                          Verify <CheckCircle className="w-3 h-3" />
-                        </button>
-                        <button
-                          onClick={() => handleReject(payment.id)}
-                          disabled={busyId === payment.id}
-                          className="inline-flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded bg-red-600/80 hover:bg-red-500 disabled:opacity-50 text-white transition-colors"
-                        >
-                          Reject <XCircle className="w-3 h-3" />
-                        </button>
-                      </div>
-                    )}
+                    {renderPaymentVerification(payment, busyId, handleVerify, handleReject)}
                   </td>
                 </tr>
               ))}

@@ -14,17 +14,19 @@ export default function EmployeeTasks() {
       <EmployeeHeader title="My Tasks" subtitle="Your assigned work" />
 
       <div className="p-6 max-w-7xl mx-auto w-full space-y-6">
-        {!dataLoaded ? (
+        {!dataLoaded && (
           <div className="bg-white p-8 rounded-xl border border-slate-200 text-center text-slate-500 text-sm">
             Loading your tasks…
           </div>
-        ) : tasks.length === 0 ? (
+        )}
+        {dataLoaded && tasks.length === 0 && (
           <div className="bg-white p-8 rounded-xl border border-slate-200 text-center">
             <CheckSquare className="mx-auto text-slate-300 mb-4" size={48} />
             <h3 className="text-lg font-bold text-slate-900 mb-1">No Tasks Assigned</h3>
             <p className="text-slate-500 text-sm">You don&apos;t have any tasks right now.</p>
           </div>
-        ) : (
+        )}
+        {dataLoaded && tasks.length > 0 && (
           <div className="space-y-4">
             {tasks.map(task => (
               <div key={task.id} className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex flex-col md:flex-row gap-6">

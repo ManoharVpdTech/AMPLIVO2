@@ -98,7 +98,7 @@ export default function PortalLeads() {
       a.download = `leads-${new Date().toISOString().slice(0, 10)}.csv`;
       document.body.appendChild(a);
       a.click();
-      document.body.removeChild(a);
+      a.remove();
       URL.revokeObjectURL(url);
       showToast(`Exported ${all.length} leads.`, 'success');
     } catch {

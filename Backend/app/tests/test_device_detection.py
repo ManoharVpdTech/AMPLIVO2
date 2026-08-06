@@ -45,7 +45,7 @@ async def test_first_login_is_logged_as_new_device(client: AsyncClient, db_sessi
 
     logs = await _new_device_logs(db_session)
     assert len(logs) == 1
-    assert logs[0].status == "success"
+    assert logs[0].action == AuditAction.NEW_DEVICE_LOGIN.value
 
 
 async def test_repeat_login_from_same_device_is_not_logged_as_new(
