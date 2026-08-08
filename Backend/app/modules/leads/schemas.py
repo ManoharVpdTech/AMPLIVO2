@@ -29,7 +29,7 @@ class LeadCreate(SanitizedModel):
     email: EmailStr | None = None; phone: PhoneNumber = None
     source_id: uuid.UUID | None = None; client_id: uuid.UUID | None = None
     status: str = Field(min_length=1, max_length=50); pipeline_stage_id: uuid.UUID | None = None; priority: str = Field(min_length=1, max_length=50)
-    estimated_value: float | None = None; assigned_to: uuid.UUID | None = None; notes: str | None = Field(None, min_length=1, max_length=5000)
+    estimated_value: float | None = Field(None, ge=0.0); assigned_to: uuid.UUID | None = None; notes: str | None = Field(None, min_length=1, max_length=5000)
     interested_services: list[str] | None = None
 class LeadUpdate(SanitizedModel):
     title: NameStr | None = Field(None, min_length=2, max_length=300)
@@ -37,7 +37,7 @@ class LeadUpdate(SanitizedModel):
     email: EmailStr | None = None; phone: PhoneNumber = None
     source_id: uuid.UUID | None = None; client_id: uuid.UUID | None = None
     status: str | None = Field(None, min_length=1, max_length=50); pipeline_stage_id: uuid.UUID | None = None; priority: str | None = Field(None, min_length=1, max_length=50)
-    estimated_value: float | None = None; assigned_to: uuid.UUID | None = None; notes: str | None = Field(None, min_length=1, max_length=5000)
+    estimated_value: float | None = Field(None, ge=0.0); assigned_to: uuid.UUID | None = None; notes: str | None = Field(None, min_length=1, max_length=5000)
     interested_services: list[str] | None = None
 class LeadRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)

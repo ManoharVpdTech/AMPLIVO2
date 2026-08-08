@@ -56,7 +56,30 @@ class LeadService:
         if lead is None: raise NotFoundException("Lead")
         enforce_client_scope(lead.client_id, scoped_client_id)
         return lead
+    async def _validate_fk_references(self, data: dict) -> None:
+        from app.models.user import User
+        from app.modules.leads.models import LeadSource, SalesPipeline
+        from app.modules.crm.models import Client
+
+        if "client_id" in data and data["client_id"] is not None:
+            client = await self._db.get(Client, data["client_id"])
+            if not client:
+                raise NotFoundException("Client")
+        if "pipeline_stage_id" in data and data["pipeline_stage_id"] is not None:
+            stage = await self._db.get(SalesPipeline, data["pipeline_stage_id"])
+            if not stage:
+                raise NotFoundException("SalesPipeline")
+        if "assigned_to" in data and data["assigned_to"] is not None:
+            user = await self._db.get(User, data["assigned_to"])
+            if not user or user.is_deleted:
+                raise NotFoundException("User")
+        if "source_id" in data and data["source_id"] is not None:
+            source = await self._db.get(LeadSource, data["source_id"])
+            if not source:
+                raise NotFoundException("LeadSource")
+
     async def create_lead(self, data: dict, created_by: uuid.UUID | None = None) -> Lead:
+        await self._validate_fk_references(data)
         data["created_by"] = created_by
         lead = await self._repo.create_from_dict(data)
         if lead.assigned_to:
@@ -72,6 +95,7 @@ class LeadService:
         return lead
     async def update_lead(self, lead_id: uuid.UUID, data: dict, *, scoped_client_id: uuid.UUID | None = None, actor_id: uuid.UUID | None = None) -> Lead:
         existing = await self.get_lead(lead_id, scoped_client_id=scoped_client_id)
+        await self._validate_fk_references(data)
         old_status = existing.status
         old_assigned_to = existing.assigned_to
         updated = await self._repo.update(lead_id, data)
@@ -103,6 +127,9 @@ class LeadService:
         return updated
     async def delete_lead(self, lead_id: uuid.UUID, *, scoped_client_id: uuid.UUID | None = None) -> None:
         await self.get_lead(lead_id, scoped_client_id=scoped_client_id)
+        from app.modules.crm.models import Proposal
+        from sqlalchemy import delete
+        await self._db.execute(delete(Proposal).where(Proposal.lead_id == lead_id))
         if not await self._repo.delete(lead_id): raise NotFoundException("Lead")
 
     async def set_status(self, lead_id: uuid.UUID, status: str, *, actor_id: uuid.UUID | None = None) -> Lead:
@@ -214,6 +241,10 @@ class LeadService:
         if lead.status == "converted": raise BadRequestException("Lead is already converted.")
 
         if client_id is not None:
+            from app.modules.crm.models import Client
+            client = await self._db.get(Client, client_id)
+            if not client:
+                raise NotFoundException("Client")
             lead.converted_client_id = client_id
             await self._db.flush()
             await self._db.refresh(lead)
@@ -251,6 +282,14 @@ class LeadActivityService:
     async def list_activities(self, lead_id: uuid.UUID) -> Sequence[LeadActivity]:
         return await self._repo.list_by_lead(lead_id)
     async def create_activity(self, lead_id: uuid.UUID, data: dict, performed_by: uuid.UUID | None = None) -> LeadActivity:
+        lead = await self._db.get(Lead, lead_id)
+        if not lead:
+            raise NotFoundException("Lead")
+        if performed_by:
+            from app.models.user import User
+            user = await self._db.get(User, performed_by)
+            if not user or user.is_deleted:
+                raise NotFoundException("User")
         data["lead_id"] = lead_id; data["performed_by"] = performed_by
         return await self._repo.create_from_dict(data)
 
@@ -261,9 +300,22 @@ class LeadFollowupService:
     async def list_followups(self, lead_id: uuid.UUID) -> Sequence[LeadFollowup]:
         return await self._repo.list_by_lead(lead_id)
     async def create_followup(self, lead_id: uuid.UUID, data: dict) -> LeadFollowup:
+        lead = await self._db.get(Lead, lead_id)
+        if not lead:
+            raise NotFoundException("Lead")
+        if "assigned_to" in data and data["assigned_to"] is not None:
+            from app.models.user import User
+            user = await self._db.get(User, data["assigned_to"])
+            if not user or user.is_deleted:
+                raise NotFoundException("User")
         data["lead_id"] = lead_id
         return await self._repo.create_from_dict(data)
     async def update_followup(self, followup_id: uuid.UUID, data: dict) -> LeadFollowup:
+        if "assigned_to" in data and data["assigned_to"] is not None:
+            from app.models.user import User
+            user = await self._db.get(User, data["assigned_to"])
+            if not user or user.is_deleted:
+                raise NotFoundException("User")
         updated = await self._repo.update(followup_id, data)
         if updated is None: raise NotFoundException("LeadFollowup")
         return updated
