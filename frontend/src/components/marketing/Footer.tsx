@@ -22,9 +22,9 @@ const footerLinks = {
     { label: 'Education', href: '/industries/education' },
     { label: 'Healthcare', href: '/industries/healthcare' },
     { label: 'E-Commerce', href: '/industries/e-commerce' },
-    { label: 'Startups & IT', href: '/industries/startups-and-it' },
+    { label: 'Startups & IT', href: '/industries/startups' },
     { label: 'Hospitality', href: '/industries/hospitality' },
-    { label: 'Finance', href: '/industries/finance' },
+    { label: 'Finance', href: '/industries/finance-fintech' },
   ],
   'Quick Links': [
     { label: 'Contact Us', href: '/contact' },
