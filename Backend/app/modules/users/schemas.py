@@ -175,7 +175,7 @@ class TeamBase(SanitizedModel):
 
 
 class TeamCreate(TeamBase):
-    pass
+    department_id: uuid.UUID
 
 
 class TeamUpdate(SanitizedModel):

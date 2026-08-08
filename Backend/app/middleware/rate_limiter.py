@@ -88,6 +88,20 @@ class RateLimiterMiddleware(BaseHTTPMiddleware):
 
         client_ip = get_client_ip(request) or "unknown"
 
+        # Try to resolve user_id from authorization header for per-account rate limiting
+        user_id = None
+        authorization = request.headers.get("Authorization")
+        if authorization and authorization.lower().startswith("bearer "):
+            token = authorization.split(" ", 1)[1].strip()
+            try:
+                from app.utils.jwt import decode_token
+                payload = decode_token(token, expected_type="access")
+                user_id = payload.get("sub")
+            except Exception:
+                pass
+
+        limit_key = f"user:{user_id}" if user_id else f"ip:{client_ip}"
+
         specific_rule = self._rules.get(request.url.path)
         bucket_name = request.url.path
         if specific_rule is None and request.url.path.startswith(f"{settings.API_V1_PREFIX}/campaigns"):
@@ -101,6 +115,20 @@ class RateLimiterMiddleware(BaseHTTPMiddleware):
         elif specific_rule is None and request.url.path.startswith(f"{settings.API_V1_PREFIX}/finance"):
             specific_rule = RateLimitRule(limit=10, window_seconds=60, exponential_backoff=True)
             bucket_name = f"{settings.API_V1_PREFIX}/finance"
+        elif specific_rule is None and request.url.path.startswith(f"{settings.API_V1_PREFIX}/leads"):
+            specific_rule = RateLimitRule(limit=5, window_seconds=60)
+            bucket_name = "leads"
+        elif specific_rule is None and (
+            request.url.path.startswith(f"{settings.API_V1_PREFIX}/users") or
+            request.url.path.startswith(f"{settings.API_V1_PREFIX}/roles") or
+            request.url.path.startswith(f"{settings.API_V1_PREFIX}/permissions") or
+            request.url.path.startswith(f"{settings.API_V1_PREFIX}/branches") or
+            request.url.path.startswith(f"{settings.API_V1_PREFIX}/departments") or
+            request.url.path.startswith(f"{settings.API_V1_PREFIX}/teams") or
+            request.url.path.startswith(f"{settings.API_V1_PREFIX}/designations")
+        ):
+            specific_rule = RateLimitRule(limit=5, window_seconds=60)
+            bucket_name = "user_management"
 
         if specific_rule is not None:
             user_id: str | None = None
@@ -125,9 +153,26 @@ class RateLimiterMiddleware(BaseHTTPMiddleware):
                 return error_response(RateLimitException(retry_after=wait_time), request)
 
         if request.url.path.startswith(settings.API_V1_PREFIX):
-            retry_after = await self._check("global", client_ip, self._default_rule)
-            if retry_after is not None:
-                return error_response(RateLimitException(retry_after=retry_after), request)
+            user_id: str | None = None
+            auth = request.headers.get("Authorization")
+            if auth and auth.lower().startswith("bearer "):
+                token = auth.split(" ", 1)[1].strip()
+                try:
+                    payload = decode_token(token, expected_type="access")
+                    sub = payload.get("sub")
+                    if sub is not None:
+                        user_id = str(sub)
+                except Exception:
+                    pass
+
+            retry_ip = await self._check("global", client_ip, self._default_rule)
+            retry_acc = None
+            if user_id is not None:
+                retry_acc = await self._check("global", user_id, self._default_rule)
+            
+            if retry_ip is not None or retry_acc is not None:
+                wait_time = max(retry_ip or 0, retry_acc or 0)
+                return error_response(RateLimitException(retry_after=wait_time), request)
 
         return await call_next(request)
 

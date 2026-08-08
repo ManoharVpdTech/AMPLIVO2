@@ -33,7 +33,8 @@ class LeadRepository(BaseRepository[Lead]):
         if assigned_to: stmt = stmt.where(Lead.assigned_to == assigned_to)
         if client_id: stmt = stmt.where(Lead.client_id == client_id)
         stmt = apply_search(stmt, search=search, columns=self.searchable_columns)
-        stmt = apply_sorting(stmt, model=Lead, sort_by=sort_by, sort_order=sort_order)
+        allowed = {"title", "company_name", "contact_name", "email", "phone", "status", "priority", "estimated_value", "created_at", "updated_at"}
+        stmt = apply_sorting(stmt, model=Lead, sort_by=sort_by, sort_order=sort_order, allowed_columns=allowed)
         stmt = stmt.offset(offset).limit(limit)
         return (await self._db.execute(stmt)).scalars().all()
 

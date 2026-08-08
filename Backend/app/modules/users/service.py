@@ -102,6 +102,9 @@ class RoleService:
 
     async def assign_permission(self, role_id: uuid.UUID, permission_id: uuid.UUID) -> None:
         await self.get_role(role_id)
+        perm = await self._db.get(Permission, permission_id)
+        if not perm:
+            raise NotFoundException("Permission")
         return await self._perm_repo.assign(role_id, permission_id)
 
     async def revoke_permission(self, role_id: uuid.UUID, permission_id: uuid.UUID) -> None:
@@ -145,6 +148,8 @@ class PermissionService:
     async def create_permission(self, data: dict[str, Any]) -> Permission:
         if await self._repo.get_by_slug(data["slug"]):
             raise DuplicateException("Permission", "slug")
+        if await self._repo.get_by_module_and_action(data["module"], data["action"]):
+            raise DuplicateException("Permission", "module and action")
         return await self._repo.create_from_dict(data)
 
 
@@ -233,6 +238,10 @@ class DepartmentService:
     async def create_department(self, data: dict[str, Any]) -> Department:
         if await self._repo.get_by_slug(data["slug"]):
             raise DuplicateException("Department", "slug")
+        if "head_user_id" in data and data["head_user_id"] is not None:
+            user = await self._repo._db.get(User, data["head_user_id"])
+            if not user or user.is_deleted:
+                raise NotFoundException("User")
         return await self._repo.create_from_dict(data)
 
     async def update_department(self, department_id: uuid.UUID, data: dict[str, Any]) -> Department:
@@ -241,6 +250,10 @@ class DepartmentService:
             existing = await self._repo.get_by_slug(data["slug"])
             if existing and existing.id != department_id:
                 raise DuplicateException("Department", "slug")
+        if "head_user_id" in data and data["head_user_id"] is not None:
+            user = await self._repo._db.get(User, data["head_user_id"])
+            if not user or user.is_deleted:
+                raise NotFoundException("User")
         updated = await self._repo.update(department_id, data)
         if updated is None:
             raise NotFoundException("Department")
@@ -288,12 +301,21 @@ class TeamService:
         return team
 
     async def create_team(self, data: dict[str, Any]) -> Team:
+        if "department_id" not in data or data["department_id"] is None:
+            raise BadRequestException("department_id is required")
+        dept = await self._repo._db.get(Department, data["department_id"])
+        if not dept:
+            raise NotFoundException("Department")
         if await self._repo.get_by_slug(data["slug"]):
             raise DuplicateException("Team", "slug")
         return await self._repo.create_from_dict(data)
 
     async def update_team(self, team_id: uuid.UUID, data: dict[str, Any]) -> Team:
         await self.get_team(team_id)
+        if "department_id" in data and data["department_id"] is not None:
+            dept = await self._repo._db.get(Department, data["department_id"])
+            if not dept:
+                raise NotFoundException("Department")
         if "slug" in data:
             existing = await self._repo.get_by_slug(data["slug"])
             if existing and existing.id != team_id:
@@ -387,7 +409,12 @@ class UserProfileService:
         existing = await self._repo.get_by_user_id(user_id)
         if existing:
             return await self._repo.update(user_id, data)
+        user = await self._db.get(User, user_id)
+        if user is None:
+            raise NotFoundException("User")
         data["user_id"] = user_id
+        if "full_name" not in data or not data["full_name"]:
+            data["full_name"] = user.full_name
         profile = UserProfile(**data)
         return await self._repo.create(profile)
 
@@ -434,6 +461,22 @@ class UserManagementService:
 
     async def update_user(self, user_id: uuid.UUID, data: dict[str, Any]) -> User:
         user = await self.get_user(user_id)
+        if "role_id" in data and data["role_id"] is not None:
+            role = await self._db.get(Role, data["role_id"])
+            if not role:
+                raise NotFoundException("Role")
+        if "department_id" in data and data["department_id"] is not None:
+            dept = await self._db.get(Department, data["department_id"])
+            if not dept:
+                raise NotFoundException("Department")
+        if "branch_id" in data and data["branch_id"] is not None:
+            branch = await self._db.get(Branch, data["branch_id"])
+            if not branch:
+                raise NotFoundException("Branch")
+        if "reporting_manager_id" in data and data["reporting_manager_id"] is not None:
+            manager = await self._db.get(User, data["reporting_manager_id"])
+            if not manager or manager.is_deleted:
+                raise NotFoundException("Reporting Manager")
         for key, value in data.items():
             if hasattr(user, key):
                 setattr(user, key, value)

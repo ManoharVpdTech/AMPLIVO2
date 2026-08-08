@@ -180,12 +180,12 @@ class ClientNoteRead(BaseModel):
 class ProposalCreate(SanitizedModel):
     title: NameStr = Field(min_length=2, max_length=300)
     description: str | None = Field(None, min_length=1, max_length=5000)
-    amount: float | None = None
+    amount: float | None = Field(None, ge=0.0)
 
 class ProposalUpdate(SanitizedModel):
     title: NameStr | None = Field(None, min_length=2, max_length=300)
     description: str | None = Field(None, min_length=1, max_length=5000)
-    amount: float | None = None
+    amount: float | None = Field(None, ge=0.0)
     status: str | None = Field(None, min_length=1, max_length=50)
 
 class ProposalRead(BaseModel):

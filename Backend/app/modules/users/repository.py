@@ -66,6 +66,13 @@ class PermissionRepository(BaseRepository[Permission]):
         )
         return result.scalars().all()
 
+    async def get_by_module_and_action(self, module: str, action: str) -> Permission | None:
+        result = await self._db.execute(
+            select(Permission).where(Permission.module == module, Permission.action == action)
+        )
+        return result.scalar_one_or_none()
+
+
 
 # ── RolePermission Repository ──────────────────────────────────────────
 
