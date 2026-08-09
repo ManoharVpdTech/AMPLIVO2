@@ -2,8 +2,19 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, ChevronDown, ArrowRight } from 'lucide-react';
+import { ChevronDown, Menu, X } from 'lucide-react';
 import { Logo } from '@/components/ui/Logo';
+
+function getLinkClass(isSolid: boolean, isActiveLink: boolean): string {
+  if (isSolid) {
+    return isActiveLink
+      ? 'text-[#4C1D95] font-bold bg-[#4C1D95]/5'
+      : 'text-slate-600 hover:text-[#4C1D95] hover:bg-[#4C1D95]/5';
+  }
+  return isActiveLink
+    ? 'text-white font-bold bg-white/10'
+    : 'text-white/85 hover:text-white hover:bg-white/10';
+}
 
 const navLinks = [
   { label: 'Home', href: '/' },
@@ -36,7 +47,7 @@ interface NavbarProps {
   alwaysSolid?: boolean;
 }
 
-export function Navbar({ alwaysSolid = false }: NavbarProps) {
+export function Navbar({ alwaysSolid = false }: Readonly<NavbarProps>) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
@@ -112,15 +123,7 @@ export function Navbar({ alwaysSolid = false }: NavbarProps) {
                   aria-current={linkActive ? 'page' : undefined}
                   aria-haspopup={link.children ? 'true' : undefined}
                   aria-expanded={link.children ? dropdownOpen : undefined}
-                  className={`flex items-center gap-0.5 xl:gap-1 px-2.5 xl:px-3 py-1.5 xl:py-2 rounded-lg text-xs xl:text-sm font-medium transition-colors whitespace-nowrap ${
-                    isSolid
-                      ? linkActive || hasActiveChild
-                        ? 'text-[#4C1D95] font-bold bg-[#4C1D95]/5'
-                        : 'text-slate-600 hover:text-[#4C1D95] hover:bg-[#4C1D95]/5'
-                      : linkActive || hasActiveChild
-                        ? 'text-white font-bold bg-white/10'
-                        : 'text-white/85 hover:text-white hover:bg-white/10'
-                  }`}
+                  className={`flex items-center gap-0.5 xl:gap-1 px-2.5 xl:px-3 py-1.5 xl:py-2 rounded-lg text-xs xl:text-sm font-medium transition-colors whitespace-nowrap ${getLinkClass(isSolid, linkActive || Boolean(hasActiveChild))}`}
                 >
                   {link.label}
                   {link.children && <ChevronDown size={14} aria-hidden="true" className={`transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />}

@@ -42,7 +42,7 @@ function mapJobRead(raw: ApiRecord, departmentNameById: Record<string, string>):
     title: raw.title as string,
     department: (departmentId && departmentNameById[departmentId]) || 'Unassigned',
     serviceCategory: (raw.service_category as string) || '',
-    employmentType: (employmentType?.replace(/_/g, '-') || 'Full-time') as JobType,
+    employmentType: (employmentType?.replaceAll('_', '-') || 'Full-time') as JobType,
     experienceLevel: (raw.experience_level as string) || '',
     location: (raw.location as string) || '',
     workMode: ((raw.work_mode as string) || 'On-site') as WorkMode,

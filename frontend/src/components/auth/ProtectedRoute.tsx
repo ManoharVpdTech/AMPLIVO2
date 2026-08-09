@@ -20,10 +20,11 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
     // eslint-disable-next-line
     setIsMounted(true);
 
-    // The auth store rehydrates from localStorage asynchronously, so
-    // isAuthenticated is briefly false on every hard navigation/refresh
-    // even for a logged-in user. Wait for hasHydrated before deciding -
-    // otherwise this redirects a valid session to /login intermittently.
+    // The auth store rehydrates (from sessionStorage after the MED-2 change)
+    // asynchronously, so isAuthenticated is briefly false on every hard
+    // navigation/refresh even for a logged-in user. Wait for hasHydrated
+    // before deciding - otherwise this redirects a valid session to /login
+    // intermittently.
     if (!hasHydrated) {
       return;
     }

@@ -5,7 +5,13 @@ import { useCrmStore } from '@/store/crmStore';
 import { useAuthStore } from '@/store/authStore';
 import { EmployeeHeader } from '@/components/employee/EmployeeHeader';
 import { Avatar } from '@/components/ui/Avatar';
-import { Mail, Phone, MapPin, Briefcase, Calendar, Edit3, Camera, X, Check, Save } from 'lucide-react';
+import { Mail, Phone, Briefcase, Calendar, Edit3, Camera, X, Check, Save } from 'lucide-react';
+
+function getWorkloadColorClass(percent: number): string {
+  if (percent > 80) return 'bg-red-500';
+  if (percent > 50) return 'bg-amber-500';
+  return 'bg-green-500';
+}
 
 export default function EmployeeProfile() {
   const user = useAuthStore((state) => state.user);
@@ -96,6 +102,7 @@ export default function EmployeeProfile() {
         {/* Profile Card Header with Edit Trigger */}
         <div className="flex justify-end">
           <button
+            type="button"
             onClick={() => setIsEditing(!isEditing)}
             className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition-colors shadow-sm"
           >
@@ -110,8 +117,9 @@ export default function EmployeeProfile() {
             <h3 className="font-bold text-indigo-900 text-lg mb-2">Edit Personal Information</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">First Name</label>
+                <label htmlFor="profile-first-name" className="block text-xs font-semibold text-slate-700 mb-1">First Name</label>
                 <input
+                  id="profile-first-name"
                   type="text"
                   value={formData.firstName}
                   onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
@@ -120,8 +128,9 @@ export default function EmployeeProfile() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Last Name</label>
+                <label htmlFor="profile-last-name" className="block text-xs font-semibold text-slate-700 mb-1">Last Name</label>
                 <input
+                  id="profile-last-name"
                   type="text"
                   value={formData.lastName}
                   onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
@@ -130,8 +139,9 @@ export default function EmployeeProfile() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Email Address</label>
+                <label htmlFor="profile-email" className="block text-xs font-semibold text-slate-700 mb-1">Email Address</label>
                 <input
+                  id="profile-email"
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -140,8 +150,9 @@ export default function EmployeeProfile() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Phone Number</label>
+                <label htmlFor="profile-phone" className="block text-xs font-semibold text-slate-700 mb-1">Phone Number</label>
                 <input
+                  id="profile-phone"
                   type="tel"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
@@ -150,8 +161,9 @@ export default function EmployeeProfile() {
                 />
               </div>
               <div className="md:col-span-2">
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Skills (comma separated)</label>
+                <label htmlFor="profile-skills" className="block text-xs font-semibold text-slate-700 mb-1">Skills (comma separated)</label>
                 <input
+                  id="profile-skills"
                   type="text"
                   value={formData.skills}
                   onChange={(e) => setFormData({ ...formData, skills: e.target.value })}
@@ -256,10 +268,7 @@ export default function EmployeeProfile() {
                   <span className="font-medium text-slate-900">{employee.workloadPercent}%</span>
                 </div>
                 <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                  <div className={`h-full rounded-full ${
-                    employee.workloadPercent > 80 ? 'bg-red-500' :
-                    employee.workloadPercent > 50 ? 'bg-amber-500' : 'bg-green-500'
-                  }`} style={{ width: `${employee.workloadPercent}%` }} />
+                  <div className={`h-full rounded-full ${getWorkloadColorClass(employee.workloadPercent)}`} style={{ width: `${employee.workloadPercent}%` }} />
                 </div>
               </div>
               <div className="flex justify-between text-sm items-center">
@@ -279,8 +288,8 @@ export default function EmployeeProfile() {
               <div className="p-6">
                 {employee.skills && employee.skills.length > 0 ? (
                   <div className="flex flex-wrap gap-2">
-                    {employee.skills.map((skill, i) => (
-                      <span key={i} className="px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-lg text-sm font-medium">
+                    {employee.skills.map((skill) => (
+                      <span key={skill} className="px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-lg text-sm font-medium">
                         {skill}
                       </span>
                     ))}

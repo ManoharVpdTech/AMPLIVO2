@@ -5,7 +5,7 @@ import { settingsService } from '@/services/moduleServices';
 import { useAuthStore } from '@/store/authStore';
 import { useToastStore } from '@/store/toastStore';
 import { PhoneInput } from '@/components/ui/PhoneInput';
-import { Settings, Building2, Bell, Shield, Palette, Globe, Check, Loader2, Upload, Key, Lock } from 'lucide-react';
+import { Settings, Building2, Bell, Shield, Palette, Globe, Check, Loader2, Upload, Lock } from 'lucide-react';
 
 type TabType = 'agency' | 'branding' | 'domain' | 'integrations' | 'notifications' | 'security';
 
@@ -121,6 +121,7 @@ export default function AdminSettings() {
           {/* BUG-52 Fixed: Interactive Left Navigation Tabs */}
           <div className="md:col-span-1 space-y-1">
             <button
+              type="button"
               onClick={() => setActiveTab('agency')}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm transition-colors text-left ${
                 activeTab === 'agency' ? 'bg-[#4C1D95] text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'
@@ -129,6 +130,7 @@ export default function AdminSettings() {
               <Building2 size={18} /> Agency Profile
             </button>
             <button
+              type="button"
               onClick={() => setActiveTab('branding')}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm transition-colors text-left ${
                 activeTab === 'branding' ? 'bg-[#4C1D95] text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'
@@ -137,6 +139,7 @@ export default function AdminSettings() {
               <Palette size={18} /> Branding
             </button>
             <button
+              type="button"
               onClick={() => setActiveTab('domain')}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm transition-colors text-left ${
                 activeTab === 'domain' ? 'bg-[#4C1D95] text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'
@@ -145,6 +148,7 @@ export default function AdminSettings() {
               <Globe size={18} /> Domain &amp; SEO
             </button>
             <button
+              type="button"
               onClick={() => setActiveTab('integrations')}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm transition-colors text-left ${
                 activeTab === 'integrations' ? 'bg-[#4C1D95] text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'
@@ -153,6 +157,7 @@ export default function AdminSettings() {
               <Settings size={18} /> Integrations
             </button>
             <button
+              type="button"
               onClick={() => setActiveTab('notifications')}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm transition-colors text-left ${
                 activeTab === 'notifications' ? 'bg-[#4C1D95] text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'
@@ -161,6 +166,7 @@ export default function AdminSettings() {
               <Bell size={18} /> Notifications
             </button>
             <button
+              type="button"
               onClick={() => setActiveTab('security')}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm transition-colors text-left ${
                 activeTab === 'security' ? 'bg-[#4C1D95] text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'
@@ -271,22 +277,22 @@ export default function AdminSettings() {
                   <h2 className="text-lg font-bold text-slate-900" style={{ fontFamily: "'Sora', sans-serif" }}>Brand Customization</h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-semibold text-slate-600 mb-1.5">Primary Accent Color</label>
+                      <label htmlFor="settings-primary-color" className="block text-xs font-semibold text-slate-600 mb-1.5">Primary Accent Color</label>
                       <div className="flex items-center gap-3">
-                        <input type="color" value={form.primary_color} onChange={(e) => updateField('primary_color', e.target.value)} className="w-10 h-10 rounded-lg cursor-pointer border-0" />
+                        <input id="settings-primary-color" type="color" value={form.primary_color} onChange={(e) => updateField('primary_color', e.target.value)} className="w-10 h-10 rounded-lg cursor-pointer border-0" />
                         <span className="font-mono text-xs text-slate-700 font-semibold">{form.primary_color}</span>
                       </div>
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-slate-600 mb-1.5">Secondary Accent Color</label>
+                      <label htmlFor="settings-secondary-color" className="block text-xs font-semibold text-slate-600 mb-1.5">Secondary Accent Color</label>
                       <div className="flex items-center gap-3">
-                        <input type="color" value={form.secondary_color} onChange={(e) => updateField('secondary_color', e.target.value)} className="w-10 h-10 rounded-lg cursor-pointer border-0" />
+                        <input id="settings-secondary-color" type="color" value={form.secondary_color} onChange={(e) => updateField('secondary_color', e.target.value)} className="w-10 h-10 rounded-lg cursor-pointer border-0" />
                         <span className="font-mono text-xs text-slate-700 font-semibold">{form.secondary_color}</span>
                       </div>
                     </div>
                   </div>
                   <div className="pt-4 border-t border-slate-100 flex justify-end">
-                    <button onClick={handleSave} className="bg-[#4C1D95] text-white px-5 py-2 rounded-xl text-xs font-semibold hover:bg-[#3b1574]">Save Branding</button>
+                    <button type="button" onClick={handleSave} className="bg-[#4C1D95] text-white px-5 py-2 rounded-xl text-xs font-semibold hover:bg-[#3b1574]">Save Branding</button>
                   </div>
                 </div>
               )}
@@ -296,11 +302,11 @@ export default function AdminSettings() {
                 <div className="space-y-6">
                   <h2 className="text-lg font-bold text-slate-900" style={{ fontFamily: "'Sora', sans-serif" }}>Custom Domain & SEO</h2>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-600 mb-1.5">Custom Agency Domain</label>
-                    <input type="text" value={form.custom_domain} onChange={(e) => updateField('custom_domain', e.target.value)} className="w-full border border-slate-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-[#4C1D95]" />
+                    <label htmlFor="settings-custom-domain" className="block text-xs font-semibold text-slate-600 mb-1.5">Custom Agency Domain</label>
+                    <input id="settings-custom-domain" type="text" value={form.custom_domain} onChange={(e) => updateField('custom_domain', e.target.value)} className="w-full border border-slate-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-[#4C1D95]" />
                   </div>
                   <div className="pt-4 border-t border-slate-100 flex justify-end">
-                    <button onClick={handleSave} className="bg-[#4C1D95] text-white px-5 py-2 rounded-xl text-xs font-semibold hover:bg-[#3b1574]">Save Domain</button>
+                    <button type="button" onClick={handleSave} className="bg-[#4C1D95] text-white px-5 py-2 rounded-xl text-xs font-semibold hover:bg-[#3b1574]">Save Domain</button>
                   </div>
                 </div>
               )}
@@ -310,10 +316,10 @@ export default function AdminSettings() {
                 <div className="space-y-6">
                   <h2 className="text-lg font-bold text-slate-900" style={{ fontFamily: "'Sora', sans-serif" }}>API Keys & Integrations</h2>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-600 mb-1.5">Master Live API Key</label>
+                    <label htmlFor="settings-api-key" className="block text-xs font-semibold text-slate-600 mb-1.5">Master Live API Key</label>
                     <div className="flex gap-2">
-                      <input type="text" readOnly value={form.api_key} className="flex-1 font-mono text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-600" />
-                      <button onClick={() => showToast('API key copied!', 'success')} className="px-3 py-2 bg-slate-100 text-slate-700 text-xs font-semibold rounded-xl hover:bg-slate-200">Copy</button>
+                      <input id="settings-api-key" type="text" readOnly value={form.api_key} className="flex-1 font-mono text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-600" />
+                      <button type="button" onClick={() => showToast('API key copied!', 'success')} className="px-3 py-2 bg-slate-100 text-slate-700 text-xs font-semibold rounded-xl hover:bg-slate-200">Copy</button>
                     </div>
                   </div>
                 </div>

@@ -48,7 +48,7 @@ const ctaVariants = {
   },
 };
 
-export function PageHero({ config, className = '' }: PageHeroProps) {
+export function PageHero({ config, className = '' }: Readonly<PageHeroProps>) {
   const { background, content } = config;
 
   const overlayStyle = 'from-slate-950/90 via-slate-950/70 to-slate-950/90';
@@ -124,7 +124,7 @@ export function PageHero({ config, className = '' }: PageHeroProps) {
   );
 }
 
-function HeroIcon({ name }: { name: string }) {
+function HeroIcon({ name }: Readonly<{ name: string }>) {
   if (name === 'download') {
     return (
       <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

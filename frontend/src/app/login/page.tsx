@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { isAxiosError } from 'axios';
 import * as z from 'zod';
-import { Eye, EyeOff, ArrowRight, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Logo } from '@/components/ui/Logo';
 import { authService } from '@/services/authService';
 import { useAuthStore } from '@/store/authStore';
@@ -119,7 +119,7 @@ export default function LoginPage() {
               <button 
                 key={role}
                 type="button" 
-                onClick={() => setDemoCredentials(role as any)} 
+                onClick={() => setDemoCredentials(role as 'client' | 'admin' | 'sales' | 'hr' | 'employee' | 'crm')} 
                 className="flex-1 min-w-[60px] px-2 py-1.5 text-[10px] font-semibold text-slate-600 capitalize bg-white border border-slate-200 rounded-lg hover:border-[#4C1D95] hover:text-[#4C1D95] transition-colors"
               >
                 {role} Demo

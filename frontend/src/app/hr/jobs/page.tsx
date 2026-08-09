@@ -36,8 +36,8 @@ export default function JobsPage() {
   const [viewJob, setViewJob] = useState<Job | null>(null);
   const [confirmDialog, setConfirmDialog] = useState<{ type: 'close' | 'delete'; job: Job } | null>(null);
 
-  const departments = useMemo(() => Array.from(new Set(jobs.map(j => j.department))).sort(), [jobs]);
-  const locations = useMemo(() => Array.from(new Set(jobs.map(j => j.location).filter(Boolean))).sort(), [jobs]);
+  const departments = useMemo(() => Array.from(new Set(jobs.map(j => j.department))).sort((a, b) => a.localeCompare(b)), [jobs]);
+  const locations = useMemo(() => Array.from(new Set(jobs.map(j => j.location).filter(Boolean) as string[])).sort((a, b) => a.localeCompare(b)), [jobs]);
 
   const activeFilterCount = (statusFilter !== 'All' ? 1 : 0) + (departmentFilter !== 'All' ? 1 : 0) + (locationFilter !== 'All' ? 1 : 0);
 
@@ -101,6 +101,7 @@ export default function JobsPage() {
             />
           </div>
           <button
+            type="button"
             onClick={() => setFiltersOpen(!filtersOpen)}
             aria-expanded={filtersOpen}
             className={`flex items-center gap-2 px-4 py-2 border rounded-xl text-sm font-medium transition-colors ${
@@ -122,8 +123,9 @@ export default function JobsPage() {
         {filtersOpen && (
           <div className="p-4 border-b border-slate-200 bg-white flex flex-wrap items-end gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Status</label>
+              <label htmlFor="filter-job-status" className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Status</label>
               <select
+                id="filter-job-status"
                 value={statusFilter}
                 onChange={e => setStatusFilter(e.target.value as 'All' | JobStatus)}
                 className="px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#4C1D95]/20 focus:border-[#4C1D95] min-w-[140px]"
@@ -133,8 +135,9 @@ export default function JobsPage() {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Department</label>
+              <label htmlFor="filter-job-dept" className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Department</label>
               <select
+                id="filter-job-dept"
                 value={departmentFilter}
                 onChange={e => setDepartmentFilter(e.target.value)}
                 className="px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#4C1D95]/20 focus:border-[#4C1D95] min-w-[140px]"
@@ -144,8 +147,9 @@ export default function JobsPage() {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Location</label>
+              <label htmlFor="filter-job-location" className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Location</label>
               <select
+                id="filter-job-location"
                 value={locationFilter}
                 onChange={e => setLocationFilter(e.target.value)}
                 className="px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#4C1D95]/20 focus:border-[#4C1D95] min-w-[140px]"
@@ -156,6 +160,7 @@ export default function JobsPage() {
             </div>
             {activeFilterCount > 0 && (
               <button
+                type="button"
                 onClick={clearFilters}
                 className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-slate-500 hover:text-rose-600 transition-colors"
               >
@@ -194,6 +199,7 @@ export default function JobsPage() {
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-1">
                       <button
+                        type="button"
                         onClick={() => setViewJob(job)}
                         className="p-2 text-slate-400 hover:text-[#4C1D95] rounded-lg transition-colors"
                         title="View"
@@ -201,6 +207,7 @@ export default function JobsPage() {
                         <Eye size={16} />
                       </button>
                       <button
+                        type="button"
                         onClick={() => router.push(`/hr/jobs/${job.id}/edit`)}
                         className="p-2 text-slate-400 hover:text-blue-500 rounded-lg transition-colors"
                         title="Edit"
@@ -208,6 +215,7 @@ export default function JobsPage() {
                         <Edit size={16} />
                       </button>
                       <button
+                        type="button"
                         onClick={() => handleDuplicate(job)}
                         className="p-2 text-slate-400 hover:text-slate-700 rounded-lg transition-colors"
                         title="Duplicate"
@@ -215,6 +223,7 @@ export default function JobsPage() {
                         <Copy size={16} />
                       </button>
                       <button
+                        type="button"
                         onClick={() => setConfirmDialog({ type: 'close', job })}
                         disabled={job.status === 'Closed'}
                         className="p-2 text-slate-400 hover:text-amber-500 rounded-lg transition-colors disabled:opacity-30 disabled:pointer-events-none"
@@ -223,6 +232,7 @@ export default function JobsPage() {
                         <XCircle size={16} />
                       </button>
                       <button
+                        type="button"
                         onClick={() => setConfirmDialog({ type: 'delete', job })}
                         className="p-2 text-slate-400 hover:text-rose-500 rounded-lg transition-colors"
                         title="Delete"
@@ -247,12 +257,13 @@ export default function JobsPage() {
 
       {viewJob && <JobViewModal job={viewJob} onClose={() => setViewJob(null)} />}
 
-      {confirmDialog && confirmDialog.type === 'close' && (
+      {confirmDialog?.type === 'close' && confirmDialog.job && (
         <ConfirmDialog
           title="Close this job posting?"
           message={`"${confirmDialog.job.title}" will be marked as Closed and hidden from active listings. You can still find it under the Closed status filter.`}
           confirmLabel="Close Job"
           onConfirm={async () => {
+            if (!confirmDialog?.job) return;
             try {
               await careersService.updateJob(confirmDialog.job.id, { status: STATUS_TO_BACKEND.Closed });
               await fetchJobs();
@@ -265,13 +276,14 @@ export default function JobsPage() {
         />
       )}
 
-      {confirmDialog && confirmDialog.type === 'delete' && (
+      {confirmDialog?.type === 'delete' && confirmDialog.job && (
         <ConfirmDialog
           title="Delete this job posting?"
-          message={`"${confirmDialog.job.title}" will be permanently deleted. This action cannot be undone.`}
+          message={`Are you sure you want to delete "${confirmDialog.job.title}"? This action cannot be undone.`}
           confirmLabel="Delete"
           danger
           onConfirm={async () => {
+            if (!confirmDialog?.job) return;
             try {
               await careersService.deleteJob(confirmDialog.job.id);
               await fetchJobs();

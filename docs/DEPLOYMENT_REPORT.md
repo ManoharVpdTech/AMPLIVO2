@@ -48,7 +48,7 @@ The FastAPI backend code itself was already correct (449 routes register cleanly
 
 ## Recommendation (not fixed automatically — needs your decision)
 
-**`render.yaml` is committed to git and contains the live Supabase database password in plaintext** (`postgresql+asyncpg://postgres.fhxkiprlcdwbgtaxlffk:Shivanivpd123@...`). This has been true since before this change, not introduced by it, but it's a real exposure — anyone with repo read access has the production DB password. Recommend:
+**The live Supabase database password was committed to git in plaintext** (previously in `Backend/app/core/config.py`, `audit.py`, `render.yaml`, scripts, and this report). Anyone with repo read access must assume the credential is burned and rotate it. Recommend:
 1. Rotate the Supabase database password.
 2. Move `DATABASE_URL` (and the JWT/Brevo secrets) to Render's dashboard "Environment" secrets instead of inline `value:` in `render.yaml`, or use `sync: false` env vars set manually per-environment.
 

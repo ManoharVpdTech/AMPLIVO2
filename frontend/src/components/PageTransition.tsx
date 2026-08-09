@@ -1,14 +1,13 @@
 'use client';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, Suspense } from 'react';
 import { usePathname } from 'next/navigation';
 
 /**
  * Wraps page content and plays a fade-in animation on every route change.
  * Uses a simple CSS keyframe so no extra dependencies are needed.
  */
-import { Suspense } from 'react';
 
-function PageTransitionInner({ children }: { children: React.ReactNode }) {
+function PageTransitionInner({ children }: Readonly<{ children: React.ReactNode }>) {
   const pathname = usePathname();
   const ref = useRef<HTMLDivElement>(null);
 
@@ -27,7 +26,7 @@ function PageTransitionInner({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function PageTransition({ children }: { children: React.ReactNode }) {
+export function PageTransition({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <Suspense fallback={<div className="page-transition-wrapper">{children}</div>}>
       <PageTransitionInner>{children}</PageTransitionInner>

@@ -263,35 +263,35 @@ function RequestPostModal({ onClose, onCreated }: { onClose: () => void; onCreat
       <div className="bg-white rounded-2xl w-full max-w-lg p-6" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-bold text-slate-900">Request a Post</h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={18} /></button>
+          <button type="button" onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={18} /></button>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           {errorMsg && <p className="text-sm text-red-600 bg-red-50 rounded-lg p-2">{errorMsg}</p>}
           <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1">Title <span className="text-red-500">*</span></label>
-            <input value={title} onChange={(e) => setTitle(e.target.value)} required className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#4C1D95]/30" placeholder="e.g. Diwali sale announcement" />
+            <label htmlFor="post-req-title" className="block text-xs font-medium text-slate-500 mb-1">Title <span className="text-red-500">*</span></label>
+            <input id="post-req-title" value={title} onChange={(e) => setTitle(e.target.value)} required className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#4C1D95]/30" placeholder="e.g. Diwali sale announcement" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-slate-500 mb-1">Content Type <span className="text-red-500">*</span></label>
-              <select value={contentType} onChange={(e) => setContentType(e.target.value)} required className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm capitalize">
+              <label htmlFor="post-req-type" className="block text-xs font-medium text-slate-500 mb-1">Content Type <span className="text-red-500">*</span></label>
+              <select id="post-req-type" value={contentType} onChange={(e) => setContentType(e.target.value)} required className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm capitalize">
                 {CONTENT_TYPES.map((c) => <option key={c} value={c}>{c.replace('_', ' ')}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-500 mb-1">Platform <span className="text-red-500">*</span></label>
-              <select value={platform} onChange={(e) => setPlatform(e.target.value)} required className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm">
+              <label htmlFor="post-req-platform" className="block text-xs font-medium text-slate-500 mb-1">Platform <span className="text-red-500">*</span></label>
+              <select id="post-req-platform" value={platform} onChange={(e) => setPlatform(e.target.value)} required className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm">
                 {PLATFORMS.map((p) => <option key={p} value={p}>{p}</option>)}
               </select>
             </div>
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1">Preferred Date <span className="text-red-500">*</span></label>
-            <input type="date" min={new Date().toISOString().split('T')[0]} value={scheduledDate} onChange={(e) => setScheduledDate(e.target.value)} required className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#4C1D95]/30" />
+            <label htmlFor="post-req-date" className="block text-xs font-medium text-slate-500 mb-1">Preferred Date <span className="text-red-500">*</span></label>
+            <input id="post-req-date" type="date" min={new Date().toISOString().split('T')[0]} value={scheduledDate} onChange={(e) => setScheduledDate(e.target.value)} required className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#4C1D95]/30" />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1">Brief / Notes <span className="text-red-500">*</span></label>
-            <textarea value={brief} onChange={(e) => setBrief(e.target.value)} rows={3} required className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#4C1D95]/30" placeholder="What should this post be about?" />
+            <label htmlFor="post-req-brief" className="block text-xs font-medium text-slate-500 mb-1">Brief / Notes <span className="text-red-500">*</span></label>
+            <textarea id="post-req-brief" value={brief} onChange={(e) => setBrief(e.target.value)} rows={3} required className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#4C1D95]/30" placeholder="What should this post be about?" />
           </div>
           <div className="flex gap-2 pt-2">
             <button type="button" onClick={onClose} className="flex-1 border border-slate-200 rounded-lg py-2.5 text-sm font-medium text-slate-600">Cancel</button>

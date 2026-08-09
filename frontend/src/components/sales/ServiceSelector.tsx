@@ -71,7 +71,7 @@ export function ServiceSelector({ selected, onChange }: ServiceSelectorProps) {
         </div>
         {showDropdown && (
           <>
-            <div className="fixed inset-0 z-10" onClick={() => setShowDropdown(false)} />
+            <div className="fixed inset-0 z-10" role="button" tabIndex={0} onClick={() => setShowDropdown(false)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setShowDropdown(false); }} />
             <div className="absolute z-20 left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-64 overflow-y-auto py-1.5">
               {categories.length === 0 ? (
                 <div className="px-4 py-3 text-xs text-slate-400 italic">
@@ -94,11 +94,13 @@ export function ServiceSelector({ selected, onChange }: ServiceSelectorProps) {
                         >
                           <span className="text-sm text-slate-700 font-medium">{svc.name}</span>
                           <span className="text-xs text-slate-400 flex-shrink-0">
-                            {svc.monthlyPrice > 0
-                              ? `₹${svc.monthlyPrice.toLocaleString('en-IN')}/mo`
-                              : svc.setupFee > 0
-                              ? `₹${svc.setupFee.toLocaleString('en-IN')}`
-                              : ''}
+                            {svc.monthlyPrice > 0 ? (
+                              `₹${svc.monthlyPrice.toLocaleString('en-IN')}/mo`
+                            ) : svc.setupFee > 0 ? (
+                              `₹${svc.setupFee.toLocaleString('en-IN')}`
+                            ) : (
+                              ''
+                            )}
                           </span>
                         </button>
                       ))}

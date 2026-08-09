@@ -193,8 +193,9 @@ export function ScheduleMeetingModal({ leadId, leadName, company, onClose, onSch
 
           {/* Timezone */}
           <div>
-            <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Timezone</label>
+            <label htmlFor="meeting-tz" className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Timezone</label>
             <select
+              id="meeting-tz"
               value={selectedTz}
               onChange={(e) => setSelectedTz(e.target.value)}
               className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-[#4C1D95]/20 focus:border-[#4C1D95]"
@@ -209,10 +210,11 @@ export function ScheduleMeetingModal({ leadId, leadName, company, onClose, onSch
 
           {/* Agenda */}
           <div>
-            <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">
+            <label htmlFor="meeting-agenda" className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">
               Agenda <span className="text-red-500">*</span>
             </label>
             <textarea
+              id="meeting-agenda"
               required
               aria-required="true"
               value={form.agenda}

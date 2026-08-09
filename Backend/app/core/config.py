@@ -15,9 +15,13 @@ class Settings(BaseSettings):
     # The single connection string SQLAlchemy/asyncpg actually connects
     # with. Everything else DB-related below configures how that connection
     # behaves (pooling, SSL) - it does not change which database is used.
-    DATABASE_URL: str = Field(
-        default="postgresql+asyncpg://postgres.fhxkiprlcdwbgtaxlffk:Shivanivpd123@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres"
-    )
+    #
+    # SECURITY: there is intentionally NO real credential baked in here. The
+    # live Supabase password was previously committed at this field's default;
+    # that constant is gone. In production the app FAILS CLOSED at boot (see
+    # _fail_closed_in_production below) if DATABASE_URL / JWT_SECRET_KEY are
+    # missing, empty, or still the documented dev placeholders.
+    DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/amplivo_erp"
 
     DB_POOL_SIZE: int = 5
     DB_MAX_OVERFLOW: int = 10
@@ -39,7 +43,7 @@ class Settings(BaseSettings):
     SUPABASE_ANON_KEY: str | None = None
     SUPABASE_SERVICE_ROLE_KEY: str | None = None
 
-    JWT_SECRET_KEY: str = Field(default="CHANGE_ME_IN_PRODUCTION")
+    JWT_SECRET_KEY: str = ""
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
@@ -62,6 +66,15 @@ class Settings(BaseSettings):
 
     MAX_FAILED_LOGIN_ATTEMPTS: int = 5
     ACCOUNT_LOCK_MINUTES: int = 15
+
+    # ── Client-IP / proxy trust ─────────────────────────────────────────────
+    # Comma-separated CIDRs/addresses of reverse proxies directly in front of
+    # this app. The value of X-Forwarded-For is only honored when the direct
+    # peer is one of these, otherwise the header is ignored (prevents a public
+    # client from self-spoofing its IP to dodge rate limiting / audit logging).
+    # The default trusts loopback + private ranges so local dev, Docker, and
+    # Render's internal load balancer keep working out of the box.
+    TRUSTED_PROXIES: str = "127.0.0.1,::1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,fc00::/7,fe80::/10"
 
     RATE_LIMIT_LOGIN_PER_MINUTE: int = 5
     RATE_LIMIT_REGISTER_PER_MINUTE: int = 3
@@ -130,10 +143,69 @@ class Settings(BaseSettings):
     # Python format (useful for local development).
     LOG_FORMAT: str = "json"
 
+    # ── Error tracking (Sentry) ────────────────────────────────────────────────
+    # Optional and inert by default. Set SENTRY_DSN in the environment to
+    # enable error/performance capture; without it no SDK call is made and no
+    # network traffic leaves the process. SENTRY_TRACES_SAMPLE_RATE controls the
+    # fraction of transactions sent (float 0.0-1.0; keep low in production).
+    SENTRY_DSN: str | None = None
+    SENTRY_TRACES_SAMPLE_RATE: float = 0.1
+    # Environment "tag" sent to Sentry; defaults to ENVIRONMENT when unset.
+    SENTRY_ENVIRONMENT: str | None = None
+
+    # ── Centralized logging (remote log forwarder) ─────────────────────────
+    # When LOG_FORWARD_URL is set, the app buffers structured log records and
+    # ships them to the target (e.g. Render's log drain endpoint or any
+    # webhook/ingest URL) in batches over HTTP. Fully inert when unset.
+    LOG_FORWARD_URL: str | None = None
+    # Optional bearer token for the forwarder target (never logged).
+    LOG_FORWARD_TOKEN: str | None = None
+    # Max batch payload size in characters before a flush is forced.
+    LOG_FORWARD_MAX_BATCH_BYTES: int = 100_000
+    # How often (seconds) buffered records are flushed when below the size
+    # threshold. 0 disables time-based flush (size-only).
+    LOG_FORWARD_FLUSH_INTERVAL_SECONDS: float = 10.0
+
     # ── Performance ───────────────────────────────────────────────────────────
     # Log requests that take longer than this threshold (milliseconds) at INFO
     # level instead of DEBUG.
     SLOW_REQUEST_THRESHOLD_MS: int = 1000
+
+    # ── Data retention (A09) ─────────────────────────────────────────────────
+    # audit_logs / activity_logs / login_history rows older than this many
+    # days are purged by the startup retention task.
+    AUDIT_LOG_RETENTION_DAYS: int = 90
+
+    # Known non-production placeholder values. In production mode a boot with
+    # any of these is treated as a hard misconfiguration (see validator below).
+    _PLACEHOLDER_SECRETS = {"", "CHANGE_ME_IN_PRODUCTION", "change-this-to-a-long-random-secret-in-production"}
+    _PLACEHOLDER_DB_PREFIXES = ("postgresql+asyncpg://postgres:postgres@localhost",)
+
+    @model_validator(mode="after")
+    def _fail_closed_in_production(self) -> "Settings":
+        """Refuse to boot with forgable/leaked credentials when ENVIRONMENT
+        is production.
+
+        A missing JWT secret would let anyone mint valid tokens for any user
+        (HS256 with a known key); a placeholder DB URL means the app would
+        quietly connect to the wrong database. Both are boot-time, fail-fast
+        errors instead of runtime surprises.
+        """
+        if self.ENVIRONMENT != "production":
+            return self
+
+        if self.JWT_SECRET_KEY.strip() in self._PLACEHOLDER_SECRETS:
+            raise ValueError(
+                "JWT_SECRET_KEY must be set to a real secret in production "
+                "(it was empty or still the dev placeholder)."
+            )
+
+        if not self.DATABASE_URL.strip() or self.DATABASE_URL.strip().startswith(self._PLACEHOLDER_DB_PREFIXES):
+            raise ValueError(
+                "DATABASE_URL must be set to the production connection string "
+                "(it was empty or still a localhost placeholder)."
+            )
+        return self
 
 
 @lru_cache

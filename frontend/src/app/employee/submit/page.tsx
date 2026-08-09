@@ -7,8 +7,20 @@ import { taskSubmissionService, taskService } from '@/services/crmService';
 import { fileManagerService } from '@/services/moduleServices';
 import { useToastStore } from '@/store/toastStore';
 import { EmployeeHeader } from '@/components/employee/EmployeeHeader';
-import { UploadCloud, FileText, CheckCircle, AlertCircle, ArrowLeft } from 'lucide-react';
+import { UploadCloud, CheckCircle, AlertCircle, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+
+function getSubmissionStatusBadgeClass(status: string): string {
+  if (status === 'approved') return 'bg-emerald-100 text-emerald-700';
+  if (status === 'changes_requested') return 'bg-red-100 text-red-700';
+  return 'bg-amber-100 text-amber-700';
+}
+
+function getSubmitButtonText(isSubmitting: boolean, isRevision: boolean): string {
+  if (isSubmitting) return 'Submitting...';
+  if (isRevision) return 'Resubmit to CRM';
+  return 'Submit to CRM';
+}
 
 function extractErrorMessage(err: unknown): string {
   if (isAxiosError<{ message?: string; detail?: string; details?: { msg: string }[] }>(err)) {
@@ -74,10 +86,9 @@ interface TaskSubmissionHistoryItem {
   created_at: string;
 }
 
-export default function EmployeeSubmitWork({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
+export default function EmployeeSubmitWork({ searchParams }: Readonly<{ searchParams: Promise<{ [key: string]: string | string[] | undefined }> }>) {
   const resolvedParams = use(searchParams);
   const taskId = resolvedParams.taskId as string | undefined;
-  const projectId = resolvedParams.projectId as string | undefined;
   const subId = resolvedParams.id as string | undefined;
 
   const { activeEmployeeId, getTasksByEmployee, submissions, submitToCRM, resubmitToCRM, fetchAllData, dataLoaded } = useCrmStore();
@@ -266,7 +277,7 @@ export default function EmployeeSubmitWork({ searchParams }: { searchParams: Pro
           </Link>
         )}
         
-        {existingSub && existingSub.currentStatus === 'CRM_CHANGES_REQUESTED' && (
+        {existingSub?.currentStatus === 'CRM_CHANGES_REQUESTED' && (
           <div className="mb-6 bg-red-50 p-5 rounded-xl border border-red-200">
             <h3 className="text-red-800 font-bold mb-2 flex items-center gap-2">
               <AlertCircle size={18} /> CRM Feedback
@@ -303,12 +314,8 @@ export default function EmployeeSubmitWork({ searchParams }: { searchParams: Pro
                       v{s.version_number} • {s.completion_percentage}% complete • {new Date(s.created_at).toLocaleString()}
                     </div>
                   </div>
-                  <span className={`shrink-0 text-[10px] font-bold px-2 py-1 rounded-full ${
-                    s.status === 'approved' ? 'bg-emerald-100 text-emerald-700' :
-                    s.status === 'changes_requested' ? 'bg-red-100 text-red-700' :
-                    'bg-amber-100 text-amber-700'
-                  }`}>
-                    {s.status.replace(/_/g, ' ')}
+                  <span className={`shrink-0 text-[10px] font-bold px-2 py-1 rounded-full ${getSubmissionStatusBadgeClass(s.status)}`}>
+                    {s.status.replaceAll('_', ' ')}
                   </span>
                 </div>
               ))}
@@ -320,10 +327,11 @@ export default function EmployeeSubmitWork({ searchParams }: { searchParams: Pro
           
           {/* BUG-41 Fix: Visual required indicator (*) for Select Task */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label htmlFor="submit-select-task" className="block text-sm font-medium text-slate-700 mb-1">
               Select Task <span className="text-red-500">*</span>
             </label>
             <select 
+              id="submit-select-task"
               value={selectedTaskId}
               onChange={(e) => setSelectedTaskId(e.target.value)}
               className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -340,10 +348,11 @@ export default function EmployeeSubmitWork({ searchParams }: { searchParams: Pro
           
           {/* BUG-41 Fix: Visual required indicator (*) for Submission Title */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label htmlFor="submit-title" className="block text-sm font-medium text-slate-700 mb-1">
               Submission Title <span className="text-red-500">*</span>
             </label>
             <input 
+              id="submit-title"
               type="text" 
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -355,8 +364,9 @@ export default function EmployeeSubmitWork({ searchParams }: { searchParams: Pro
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Deliverable Type</label>
+            <label htmlFor="submit-deliverable-type" className="block text-sm font-medium text-slate-700 mb-1">Deliverable Type</label>
             <select 
+              id="submit-deliverable-type"
               value={deliverableType}
               onChange={(e) => setDeliverableType(e.target.value)}
               className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -371,8 +381,9 @@ export default function EmployeeSubmitWork({ searchParams }: { searchParams: Pro
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">External URL (Optional)</label>
+            <label htmlFor="submit-url" className="block text-sm font-medium text-slate-700 mb-1">External URL (Optional)</label>
             <input
+              id="submit-url"
               type="url"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
@@ -382,10 +393,11 @@ export default function EmployeeSubmitWork({ searchParams }: { searchParams: Pro
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label htmlFor="submit-completion" className="block text-sm font-medium text-slate-700 mb-1">
               Completion % <span className="text-red-500">*</span>
             </label>
             <input
+              id="submit-completion"
               type="number"
               min={0}
               max={100}
@@ -397,15 +409,24 @@ export default function EmployeeSubmitWork({ searchParams }: { searchParams: Pro
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">File Upload (Optional)</label>
+            <label htmlFor="submit-file-upload-input" className="block text-sm font-medium text-slate-700 mb-1">File Upload (Optional)</label>
             <input 
+              id="submit-file-upload-input"
               type="file" 
               ref={fileInputRef}
               onChange={handleFileChange}
               className="hidden"
             />
             <div 
+              role="button"
+              tabIndex={0}
               onClick={() => fileInputRef.current?.click()}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  fileInputRef.current?.click();
+                }
+              }}
               className="border-2 border-dashed border-slate-300 rounded-lg p-6 flex flex-col items-center justify-center text-slate-500 bg-slate-50 hover:bg-slate-100 cursor-pointer transition-colors"
             >
               <UploadCloud size={24} className="mb-2 text-indigo-500" />
@@ -426,10 +447,11 @@ export default function EmployeeSubmitWork({ searchParams }: { searchParams: Pro
           {/* BUG-41 Fix: Visual required indicator (*) for Work Summary */}
           {!isRevision && (
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
+              <label htmlFor="submit-work-summary" className="block text-sm font-medium text-slate-700 mb-1">
                 Work Summary <span className="text-red-500">*</span>
               </label>
               <textarea 
+                id="submit-work-summary"
                 value={workSummary}
                 onChange={(e) => setWorkSummary(e.target.value)}
                 rows={3}
@@ -441,8 +463,9 @@ export default function EmployeeSubmitWork({ searchParams }: { searchParams: Pro
           )}
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">{isRevision ? "Revision Notes" : "Comments for CRM (Optional)"}</label>
+            <label htmlFor="submit-comments" className="block text-sm font-medium text-slate-700 mb-1">{isRevision ? "Revision Notes" : "Comments for CRM (Optional)"}</label>
             <textarea 
+              id="submit-comments"
               value={employeeComment}
               onChange={(e) => setEmployeeComment(e.target.value)}
               rows={3}
@@ -460,7 +483,7 @@ export default function EmployeeSubmitWork({ searchParams }: { searchParams: Pro
               disabled={isSubmitting || !selectedTask}
               className="px-6 py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors shadow-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <UploadCloud size={16} /> {isSubmitting ? 'Submitting...' : isRevision ? "Resubmit to CRM" : "Submit to CRM"}
+              <UploadCloud size={16} /> {getSubmitButtonText(isSubmitting, isRevision)}
             </button>
           </div>
         </form>

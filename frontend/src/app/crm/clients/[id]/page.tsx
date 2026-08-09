@@ -40,8 +40,8 @@ export default function CrmClientDetailsPage() {
   // There's no backend concept of employees assigned directly to a Client
   // (only to Projects) - the real "account team" is the union of everyone
   // assigned across this client's actual projects.
-  const assignedEmployeeIds = Array.from(new Set(clientProjects.flatMap(p => p.assignedEmployeeIds)));
-  const assignedEmpsFull = employees.filter(e => assignedEmployeeIds.includes(e.id));
+  const assignedEmployeeIdSet = new Set(clientProjects.flatMap(p => p.assignedEmployeeIds));
+  const assignedEmpsFull = employees.filter(e => assignedEmployeeIdSet.has(e.id));
 
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-6">

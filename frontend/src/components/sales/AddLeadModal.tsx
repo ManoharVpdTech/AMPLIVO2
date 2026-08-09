@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { X, User, Building2, Mail, Phone, TrendingUp, Star, AlertCircle, FileText } from 'lucide-react';
+import { X, User, Building2, Mail, Phone, AlertCircle, FileText } from 'lucide-react';
 import { useSalesStore } from '@/store/salesStore';
 import { ServiceSelector } from './ServiceSelector';
 
@@ -11,7 +11,7 @@ interface AddLeadModalProps {
   leadToEdit?: SalesLead;
 }
 
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EMAIL_REGEX = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 // Accepts an optional leading +, then 7-15 digits, allowing spaces/hyphens as
 // separators - loose enough for Indian and international formats alike.
 const PHONE_REGEX = /^\+?[\d\s-]{7,17}$/;
@@ -25,7 +25,7 @@ interface FieldErrors {
   budget?: string;
 }
 
-export function AddLeadModal({ onClose, leadToEdit }: AddLeadModalProps) {
+export function AddLeadModal({ onClose, leadToEdit }: Readonly<AddLeadModalProps>) {
   const { createLead, editLead } = useSalesStore();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -97,7 +97,8 @@ export function AddLeadModal({ onClose, leadToEdit }: AddLeadModalProps) {
       }
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : `Failed to ${leadToEdit ? 'save' : 'create'} lead. Please check the details and try again.`);
+      const actionText = leadToEdit ? 'save' : 'create';
+      setError(err instanceof Error ? err.message : `Failed to ${actionText} lead. Please check the details and try again.`);
     } finally {
       setLoading(false);
     }
@@ -106,7 +107,7 @@ export function AddLeadModal({ onClose, leadToEdit }: AddLeadModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" role="button" tabIndex={0} onClick={onClose} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClose(); }} />
       
       {/* Modal Container (Scrollable) */}
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl border border-slate-200 animate-fade-in-up flex flex-col max-h-[90vh] overflow-hidden">
@@ -121,6 +122,7 @@ export function AddLeadModal({ onClose, leadToEdit }: AddLeadModalProps) {
             </p>
           </div>
           <button
+            type="button"
             onClick={onClose}
             className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
           >
@@ -140,12 +142,13 @@ export function AddLeadModal({ onClose, leadToEdit }: AddLeadModalProps) {
 
           {/* Primary Lead Title */}
           <div>
-            <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">
+            <label htmlFor="modal-lead-title" className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">
               Lead Title <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <FileText size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
+                id="modal-lead-title"
                 type="text"
                 required
                 aria-required="true"
@@ -166,12 +169,13 @@ export function AddLeadModal({ onClose, leadToEdit }: AddLeadModalProps) {
           {/* Name Details */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">
+              <label htmlFor="modal-first-name" className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">
                 First Name <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
+                  id="modal-first-name"
                   type="text"
                   required
                   aria-required="true"
@@ -189,10 +193,11 @@ export function AddLeadModal({ onClose, leadToEdit }: AddLeadModalProps) {
               {fieldErrors.firstName && <p className="mt-1.5 text-xs text-red-500 font-medium">{fieldErrors.firstName}</p>}
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Last Name</label>
+              <label htmlFor="modal-last-name" className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Last Name</label>
               <div className="relative">
                 <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
+                  id="modal-last-name"
                   type="text"
                   placeholder="Doe"
                   value={form.lastName}
@@ -206,12 +211,13 @@ export function AddLeadModal({ onClose, leadToEdit }: AddLeadModalProps) {
           {/* Contact Details */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">
+              <label htmlFor="modal-email" className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">
                 Email Address <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
+                  id="modal-email"
                   type="email"
                   required
                   aria-required="true"
@@ -229,10 +235,11 @@ export function AddLeadModal({ onClose, leadToEdit }: AddLeadModalProps) {
               {fieldErrors.email && <p className="mt-1.5 text-xs text-red-500 font-medium">{fieldErrors.email}</p>}
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Phone Number</label>
+              <label htmlFor="modal-phone" className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Phone Number</label>
               <div className="relative">
                 <Phone size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
+                  id="modal-phone"
                   type="tel"
                   placeholder="+91 98765 43210"
                   value={form.phone}
@@ -252,12 +259,13 @@ export function AddLeadModal({ onClose, leadToEdit }: AddLeadModalProps) {
           {/* Company details & budget */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">
+              <label htmlFor="modal-company" className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">
                 Company Name <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <Building2 size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
+                  id="modal-company"
                   type="text"
                   required
                   aria-required="true"
@@ -275,10 +283,11 @@ export function AddLeadModal({ onClose, leadToEdit }: AddLeadModalProps) {
               {fieldErrors.companyName && <p className="mt-1.5 text-xs text-red-500 font-medium">{fieldErrors.companyName}</p>}
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Monthly Budget (₹)</label>
+              <label htmlFor="modal-budget" className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Monthly Budget (₹)</label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-semibold">₹</span>
                 <input
+                  id="modal-budget"
                   type="number"
                   min={0}
                   placeholder="50000"
@@ -302,18 +311,21 @@ export function AddLeadModal({ onClose, leadToEdit }: AddLeadModalProps) {
             <div className="flex gap-2">
               {(['Low', 'Medium', 'High', 'Critical'] as const).map((lvl) => {
                 const isActive = form.priority === lvl;
+                let activeStyle = 'bg-slate-100 border-slate-200 text-slate-700 shadow-sm font-bold';
+                if (lvl === 'Critical') {
+                  activeStyle = 'bg-red-50 border-red-200 text-red-600 shadow-sm font-bold';
+                } else if (lvl === 'High') {
+                  activeStyle = 'bg-orange-50 border-orange-200 text-orange-600 shadow-sm font-bold';
+                } else if (lvl === 'Medium') {
+                  activeStyle = 'bg-amber-50 border-amber-200 text-amber-600 shadow-sm font-bold';
+                }
                 return (
                   <button
                     key={lvl}
                     type="button"
                     onClick={() => setForm({ ...form, priority: lvl })}
                     className={`flex-1 py-2 px-3 rounded-xl border text-xs font-semibold transition-all ${
-                      isActive
-                        ? lvl === 'Critical' ? 'bg-red-50 border-red-200 text-red-600 shadow-sm font-bold' :
-                          lvl === 'High' ? 'bg-orange-50 border-orange-200 text-orange-600 shadow-sm font-bold' :
-                          lvl === 'Medium' ? 'bg-amber-50 border-amber-200 text-amber-600 shadow-sm font-bold' :
-                          'bg-slate-100 border-slate-200 text-slate-700 shadow-sm font-bold'
-                        : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
+                      isActive ? activeStyle : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
                     }`}
                   >
                     {lvl}
@@ -334,8 +346,9 @@ export function AddLeadModal({ onClose, leadToEdit }: AddLeadModalProps) {
 
           {/* Notes */}
           <div>
-            <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Initial Notes</label>
+            <label htmlFor="modal-notes" className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Initial Notes</label>
             <textarea
+              id="modal-notes"
               placeholder="Provide background information, requirements or meeting notes..."
               value={form.notes}
               onChange={(e) => setForm({ ...form, notes: e.target.value })}

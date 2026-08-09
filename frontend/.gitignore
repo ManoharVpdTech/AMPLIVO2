@@ -12,6 +12,11 @@
 
 # testing
 /coverage
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+storage-state/
 
 # next.js
 /.next/
@@ -23,6 +28,9 @@
 # misc
 .DS_Store
 *.pem
+
+# contains a live Google Maps API key — never commit (use git rm --cached + keep local)
+/lighthouse-*.json
 
 # debug
 npm-debug.log*

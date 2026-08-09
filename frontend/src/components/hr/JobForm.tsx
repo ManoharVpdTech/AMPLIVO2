@@ -10,7 +10,7 @@ interface JobFormProps {
   onSubmit: (data: Partial<Job> & { departmentId?: string }) => void;
 }
 
-export function JobForm({ initialData, initialDepartmentId, onSubmit }: JobFormProps) {
+export function JobForm({ initialData, initialDepartmentId, onSubmit }: Readonly<JobFormProps>) {
   const router = useRouter();
   const departments = useHrStore(state => state.departments);
   const fetchDepartments = useHrStore(state => state.fetchDepartments);
@@ -77,8 +77,9 @@ export function JobForm({ initialData, initialDepartmentId, onSubmit }: JobFormP
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">Department <span className="text-red-500">*</span></label>
+          <label htmlFor="job-form-dept" className="block text-sm font-medium text-slate-700 mb-2">Department <span className="text-red-500">*</span></label>
           <select
+            id="job-form-dept"
             name="departmentId"
             value={departmentId}
             onChange={handleDepartmentChange}
@@ -91,8 +92,9 @@ export function JobForm({ initialData, initialDepartmentId, onSubmit }: JobFormP
         </div>
         
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">Work Mode <span className="text-red-500">*</span></label>
+          <label htmlFor="job-form-workmode" className="block text-sm font-medium text-slate-700 mb-2">Work Mode <span className="text-red-500">*</span></label>
           <select
+            id="job-form-workmode"
             name="workMode"
             value={formData.workMode}
             onChange={handleChange}
@@ -118,8 +120,9 @@ export function JobForm({ initialData, initialDepartmentId, onSubmit }: JobFormP
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">Employment Type <span className="text-red-500">*</span></label>
+          <label htmlFor="job-form-emptype" className="block text-sm font-medium text-slate-700 mb-2">Employment Type <span className="text-red-500">*</span></label>
           <select
+            id="job-form-emptype"
             name="employmentType"
             value={formData.employmentType}
             onChange={handleChange}

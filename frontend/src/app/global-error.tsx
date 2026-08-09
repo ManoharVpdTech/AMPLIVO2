@@ -1,13 +1,22 @@
 'use client';
 export const dynamic = 'force-dynamic';
 
+import { useEffect } from 'react';
+import Link from 'next/link';
+import * as Sentry from '@sentry/nextjs';
+
 export default function GlobalError({
   error,
   reset,
-}: {
+}: Readonly<{
   error: Error & { digest?: string };
   reset: () => void;
-}) {
+}>) {
+  useEffect(() => {
+    // No-op unless a client DSN is configured (see sentry.client.config.ts).
+    Sentry.captureException(error);
+  }, [error]);
+
   return (
     <html lang="en">
       <body className="font-inter antialiased">
@@ -19,17 +28,18 @@ export default function GlobalError({
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <button
+              type="button"
               onClick={() => reset()}
               className="rounded-xl bg-[#4C1D95] px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-[#3b1675]"
             >
               Try again
             </button>
-            <a
+            <Link
               href="/"
               className="rounded-xl border border-slate-200 px-6 py-3 text-sm font-medium text-slate-700 transition-colors hover:border-[#4C1D95] hover:text-[#4C1D95]"
             >
               Return Home
-            </a>
+            </Link>
           </div>
         </div>
       </body>

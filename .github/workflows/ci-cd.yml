@@ -1,0 +1,34 @@
+name: Frontend CI
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: frontend/.node-version
+      - run: npm ci
+      - run: npm run build
+
+# SECRETS: fail the build if a live credential is committed. Runs on the
+  # full git history so a secret introduced in any past commit is caught,
+  # not just one added in the current PR.
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Gitleaks (default rules)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Known-leaked credential digest guard
+        run: python3 scripts/secret-digest-guard.py

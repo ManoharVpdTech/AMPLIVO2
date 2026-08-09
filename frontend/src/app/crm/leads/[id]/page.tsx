@@ -82,7 +82,7 @@ export default function CrmLeadDetailsPage() {
     return (
       <div className="p-6 text-center text-slate-400">
         <p>Lead not found.</p>
-        <button onClick={() => router.push('/crm/leads')} className="mt-4 text-violet-400 hover:underline">
+        <button type="button" onClick={() => router.push('/crm/leads')} className="mt-4 text-violet-400 hover:underline">
           Back to Leads
         </button>
       </div>
@@ -318,11 +318,12 @@ export default function CrmLeadDetailsPage() {
 
                 {lead.crmStatus === 'Pending Review' && !showReject && (
                   <div className="mt-4 space-y-3">
-                    {loadingInvoice ? (
+                    {loadingInvoice && (
                       <p className="text-xs text-slate-500">Loading invoice…</p>
-                    ) : !invoice ? (
+                    )}
+                    {!loadingInvoice && !invoice && (
                       <p className="text-xs text-amber-400">No advance invoice found yet for this lead - Sales needs to generate one first.</p>
-                    ) : null}
+                    )}
                     <textarea
                       placeholder="Add CRM review notes..."
                       value={reviewNotes}
@@ -331,13 +332,14 @@ export default function CrmLeadDetailsPage() {
                     />
                     <div className="flex gap-2">
                       <button
+                        type="button"
                         onClick={handleApprove}
                         disabled={actionLoading || !invoice}
                         className="flex-1 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-sm font-medium py-2 rounded-lg transition-colors flex items-center justify-center gap-2"
                       >
                         <CheckCircle className="w-4 h-4" /> {actionLoading ? 'Approving…' : 'Approve'}
                       </button>
-                      <button onClick={() => setShowReject(true)} disabled={actionLoading} className="px-4 bg-red-600/20 text-red-400 hover:bg-red-600/30 disabled:opacity-50 text-sm font-medium py-2 rounded-lg transition-colors">
+                      <button type="button" onClick={() => setShowReject(true)} disabled={actionLoading} className="px-4 bg-red-600/20 text-red-400 hover:bg-red-600/30 disabled:opacity-50 text-sm font-medium py-2 rounded-lg transition-colors">
                         Reject
                       </button>
                     </div>
@@ -354,10 +356,10 @@ export default function CrmLeadDetailsPage() {
                       className="w-full bg-white/5 border border-red-500/30 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-red-500"
                     />
                     <div className="flex gap-2">
-                      <button onClick={handleReject} disabled={actionLoading} className="flex-1 bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white text-sm font-medium py-2 rounded-lg transition-colors">
+                      <button type="button" onClick={handleReject} disabled={actionLoading} className="flex-1 bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white text-sm font-medium py-2 rounded-lg transition-colors">
                         {actionLoading ? 'Rejecting…' : 'Confirm Reject'}
                       </button>
-                      <button onClick={() => setShowReject(false)} disabled={actionLoading} className="px-4 bg-white/5 text-slate-400 hover:bg-white/10 disabled:opacity-50 text-sm font-medium py-2 rounded-lg transition-colors">
+                      <button type="button" onClick={() => setShowReject(false)} disabled={actionLoading} className="px-4 bg-white/5 text-slate-400 hover:bg-white/10 disabled:opacity-50 text-sm font-medium py-2 rounded-lg transition-colors">
                         Cancel
                       </button>
                     </div>
@@ -435,7 +437,7 @@ export default function CrmLeadDetailsPage() {
               {/* STEP 3: Payment Tracking */}
               <div className="relative pl-6 border-l border-white/10 pb-2">
                 <div className={`absolute -left-[9px] top-0 w-4 h-4 rounded-full border-4 border-[#12141f] ${
-                  awaitingPayment ? 'bg-violet-500' : isClientCreated ? 'bg-emerald-500' : 'bg-slate-700'
+                  awaitingPayment ? 'bg-violet-500' : (isClientCreated ? 'bg-emerald-500' : 'bg-slate-700')
                 }`} />
                 <h3 className="text-sm font-semibold text-white">3. Payment Verification</h3>
                 <p className="text-xs text-slate-500 mt-1">Wait for client payment, then verify from the Payments tab.</p>

@@ -1,4 +1,5 @@
 import asyncio
+import os
 import uuid
 import httpx
 from datetime import timedelta
@@ -7,9 +8,15 @@ from sqlalchemy import text
 import jwt
 from datetime import datetime, timezone
 
-DATABASE_URL = "postgresql+asyncpg://postgres.fhxkiprlcdwbgtaxlffk:Shivanivpd123@aws-0-ap-northeast-1.pooler.supabase.com:5432/postgres?prepared_statement_cache_size=0"
-JWT_SECRET_KEY = "change-this-to-a-long-random-secret-in-production"
+DATABASE_URL = os.environ.get("DATABASE_URL")
+JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "change-this-to-a-long-random-secret-in-production")
 JWT_ALGORITHM = "HS256"
+
+if not DATABASE_URL:
+    raise SystemExit(
+        "DATABASE_URL env var is not set. This script previously embedded the "
+        "production connection string in source; it now reads it from the environment."
+    )
 
 def create_access_token(data: dict):
     to_encode = data.copy()

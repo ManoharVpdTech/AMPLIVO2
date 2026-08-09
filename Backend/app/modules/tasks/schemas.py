@@ -167,4 +167,12 @@ class TaskSubmissionRead(BaseModel):
     reviewed_at: datetime | None
     version_number: int
     created_at: datetime
-    updated_at: datetime
+
+class TaskSubmissionQueueItem(TaskSubmissionRead):
+    """TaskSubmissionRead plus the task/project/submitter context the CRM
+    review queue needs to render a useful list without N+1 lookups."""
+    task_title: str
+    task_number: str
+    project_id: uuid.UUID | None
+    project_name: str | None
+    submitted_by_name: str | None

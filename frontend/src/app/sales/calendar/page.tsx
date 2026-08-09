@@ -106,6 +106,7 @@ export default function CalendarPage() {
             <div className="flex items-center justify-between p-5 border-b border-slate-100 relative">
               <div className="relative" ref={jumpRef}>
                 <button
+                  type="button"
                   onClick={openJump}
                   className="font-bold text-slate-900 text-lg hover:text-[#4C1D95] transition-colors"
                   style={{ fontFamily: "'Sora', sans-serif" }}
@@ -130,6 +131,7 @@ export default function CalendarPage() {
                       />
                     </div>
                     <button
+                      type="button"
                       onClick={applyJump}
                       className="w-full py-2 bg-[#4C1D95] text-white rounded-lg text-xs font-semibold hover:bg-[#3b1574] transition-colors"
                     >
@@ -140,6 +142,7 @@ export default function CalendarPage() {
               </div>
               <div className="flex gap-1.5">
                 <button
+                  type="button"
                   onClick={goPrevYear}
                   title="Previous year"
                   className="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors"
@@ -147,6 +150,7 @@ export default function CalendarPage() {
                   <ChevronsLeft size={16} />
                 </button>
                 <button
+                  type="button"
                   onClick={goPrev}
                   title="Previous month"
                   className="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors"
@@ -154,12 +158,14 @@ export default function CalendarPage() {
                   <ChevronLeft size={16} />
                 </button>
                 <button
+                  type="button"
                   onClick={() => setCurrentDate(new Date(today.getFullYear(), today.getMonth(), 1))}
                   className="px-3 py-1.5 text-xs font-semibold text-[#4C1D95] bg-violet-50 rounded-lg hover:bg-violet-100 transition-colors"
                 >
                   Today
                 </button>
                 <button
+                  type="button"
                   onClick={goNext}
                   title="Next month"
                   className="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors"
@@ -167,6 +173,7 @@ export default function CalendarPage() {
                   <ChevronRight size={16} />
                 </button>
                 <button
+                  type="button"
                   onClick={goNextYear}
                   title="Next year"
                   className="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors"
@@ -212,9 +219,11 @@ export default function CalendarPage() {
                         key={i}
                         title={`${formatTime(m.time)} · ${m.leadName} (${m.type})`}
                         className={`flex items-center gap-1 text-[9px] font-semibold px-1.5 py-0.5 rounded-md mb-0.5 truncate border ${
-                          m.status === 'Completed' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' :
-                          getEffectiveMeetingStatus(m) === 'Scheduled' ? 'bg-violet-100 text-violet-700 border-violet-200' :
-                          'bg-slate-100 text-slate-500 border-slate-200'
+                          m.status === 'Completed'
+                            ? 'bg-emerald-100 text-emerald-700 border-emerald-200'
+                            : getEffectiveMeetingStatus(m) === 'Scheduled'
+                              ? 'bg-violet-100 text-violet-700 border-violet-200'
+                              : 'bg-slate-100 text-slate-500 border-slate-200'
                         }`}
                       >
                         <TypeIcon type={m.type} />
@@ -262,9 +271,11 @@ export default function CalendarPage() {
                         <div className="flex items-center gap-1"><Clock size={11} />{formatTime(meeting.time)}</div>
                         <div>{meeting.duration} min</div>
                         <span className={`ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                          meeting.status === 'Completed' ? 'bg-emerald-50 text-emerald-600' :
-                          getEffectiveMeetingStatus(meeting) === 'Scheduled' ? 'bg-violet-50 text-violet-600' :
-                          'bg-slate-50 text-slate-400'
+                          meeting.status === 'Completed'
+                            ? 'bg-emerald-50 text-emerald-600'
+                            : getEffectiveMeetingStatus(meeting) === 'Scheduled'
+                              ? 'bg-violet-50 text-violet-600'
+                              : 'bg-slate-50 text-slate-400'
                         }`}>
                           {meeting.status === 'Scheduled' && getEffectiveMeetingStatus(meeting) === 'No-Show' ? 'No-Show' : meeting.status}
                         </span>

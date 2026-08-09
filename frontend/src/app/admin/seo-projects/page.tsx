@@ -1,9 +1,9 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import { AdminHeader } from '@/components/admin/AdminSidebar';
-import { seoService, clientService } from '@/services';
+import { seoService } from '@/services';
 import { useToastStore } from '@/store/toastStore';
-import { Search, Plus, Globe, CheckCircle2, AlertCircle, X, Loader2, AlertTriangle, TrendingUp, BarChart2 } from 'lucide-react';
+import { Search, Plus, Globe, CheckCircle2, AlertCircle, X, Loader2, AlertTriangle } from 'lucide-react';
 
 interface SeoProject {
   id: string;
@@ -99,7 +99,7 @@ export default function AdminSEOProjects() {
     if (!form.client_name.trim()) errors.client_name = 'Client name is required.';
     if (!form.domain.trim()) {
       errors.domain = 'Target Domain URL is required for SEO tracking.';
-    } else if (!/^(https?:\/\/)?([\w\-]+\.)+[\w\-]+(\/.*)?$/i.test(form.domain.trim())) {
+    } else if (!/^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/.*)?$/i.test(form.domain.trim())) {
       errors.domain = 'Please enter a valid domain format (e.g. example.com).';
     }
 
@@ -161,6 +161,7 @@ export default function AdminSEOProjects() {
               ))}
             </select>
             <button
+              type="button"
               onClick={() => { setShowCreateModal(true); setValidationErrors({}); }}
               className="flex items-center gap-2 px-4 py-2 bg-[#4C1D95] text-white rounded-xl text-sm font-semibold hover:bg-[#3b1574] transition-colors"
             >
@@ -180,7 +181,7 @@ export default function AdminSEOProjects() {
           <div className="bg-white rounded-2xl border border-red-200 shadow-sm p-12 flex flex-col items-center justify-center gap-3">
             <AlertTriangle size={32} className="text-red-400" />
             <span className="text-sm text-red-600">{error}</span>
-            <button onClick={fetchProjects} className="mt-2 px-4 py-2 bg-red-50 text-red-600 text-sm font-semibold rounded-xl hover:bg-red-100 transition-colors">
+            <button type="button" onClick={fetchProjects} className="mt-2 px-4 py-2 bg-red-50 text-red-600 text-sm font-semibold rounded-xl hover:bg-red-100 transition-colors">
               Retry
             </button>
           </div>
@@ -199,7 +200,10 @@ export default function AdminSEOProjects() {
               /* BUG-37 Fixed: Made SEO Project Cards interactive on click */
               <div
                 key={project.id}
+                role="button"
+                tabIndex={0}
                 onClick={() => setSelectedProject(project)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setSelectedProject(project); }}
                 className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 hover:border-[#4C1D95] hover:shadow-md transition-all flex flex-col cursor-pointer group"
               >
                 <div className="flex justify-between items-start mb-4">
@@ -249,7 +253,7 @@ export default function AdminSEOProjects() {
 
       {/* SEO Project Detail Drawer / Lightbox */}
       {selectedProject && (
-        <div className="fixed inset-0 z-50 flex justify-end bg-black/40" onClick={() => setSelectedProject(null)}>
+        <div className="fixed inset-0 z-50 flex justify-end bg-black/40" role="button" tabIndex={0} onClick={() => setSelectedProject(null)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setSelectedProject(null); }}>
           <div className="bg-white w-full max-w-md h-full shadow-2xl overflow-y-auto p-6 space-y-6 animate-in slide-in-from-right duration-200" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-slate-200 pb-4">
               <div>
@@ -259,7 +263,7 @@ export default function AdminSEOProjects() {
                 <h2 className="text-lg font-bold text-slate-900">{selectedProject.name}</h2>
                 <p className="text-xs text-slate-500">{selectedProject.domain || selectedProject.target_url || 'Target Website'}</p>
               </div>
-              <button onClick={() => setSelectedProject(null)} className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg">
+              <button type="button" onClick={() => setSelectedProject(null)} className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg">
                 <X size={20} />
               </button>
             </div>
@@ -291,6 +295,7 @@ export default function AdminSEOProjects() {
               </div>
 
               <button
+                type="button"
                 onClick={() => setSelectedProject(null)}
                 className="w-full py-2.5 bg-[#4C1D95] text-white font-semibold text-xs rounded-xl hover:bg-[#3b1574]"
               >
@@ -303,18 +308,19 @@ export default function AdminSEOProjects() {
 
       {/* Create Project Modal (BUG-38 Fixed: Mandatory asterisks & domain validation) */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setShowCreateModal(false)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="button" tabIndex={0} onClick={() => setShowCreateModal(false)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setShowCreateModal(false); }}>
           <div className="bg-white rounded-2xl border border-slate-200 shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
               <h2 className="text-lg font-bold text-slate-900">Add SEO Project</h2>
-              <button onClick={() => setShowCreateModal(false)} className="p-1 text-slate-400 hover:text-slate-600 rounded-lg transition-colors">
+              <button type="button" onClick={() => setShowCreateModal(false)} className="p-1 text-slate-400 hover:text-slate-600 rounded-lg transition-colors">
                 <X size={20} />
               </button>
             </div>
             <form onSubmit={handleCreate} className="px-6 py-5 space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Project Name <span className="text-red-500">*</span></label>
+                <label htmlFor="seo-project-name" className="block text-xs font-semibold text-slate-600 mb-1">Project Name <span className="text-red-500">*</span></label>
                 <input
+                  id="seo-project-name"
                   type="text"
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -327,8 +333,9 @@ export default function AdminSEOProjects() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Client Name <span className="text-red-500">*</span></label>
+                <label htmlFor="seo-client-name" className="block text-xs font-semibold text-slate-600 mb-1">Client Name <span className="text-red-500">*</span></label>
                 <input
+                  id="seo-client-name"
                   type="text"
                   value={form.client_name}
                   onChange={(e) => setForm({ ...form, client_name: e.target.value })}
@@ -341,8 +348,9 @@ export default function AdminSEOProjects() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Target Domain URL <span className="text-red-500">*</span></label>
+                <label htmlFor="seo-target-domain" className="block text-xs font-semibold text-slate-600 mb-1">Target Domain URL <span className="text-red-500">*</span></label>
                 <input
+                  id="seo-target-domain"
                   type="text"
                   value={form.domain}
                   onChange={(e) => setForm({ ...form, domain: e.target.value })}
@@ -355,8 +363,9 @@ export default function AdminSEOProjects() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Status</label>
+                <label htmlFor="seo-project-status" className="block text-xs font-semibold text-slate-600 mb-1">Status</label>
                 <select
+                  id="seo-project-status"
                   value={form.status}
                   onChange={(e) => setForm({ ...form, status: e.target.value })}
                   className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-[#4C1D95] bg-white"

@@ -25,8 +25,11 @@ export default function ForgotPasswordPage() {
     try {
       await authService.forgotPassword(email);
       setIsSubmitted(true);
-    } catch (err: any) {
-      setError(err.response?.data?.detail || 'Failed to send reset link. Please try again.');
+    } catch (err: unknown) {
+      setError(
+        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ||
+          'Failed to send reset link. Please try again.'
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -108,7 +111,7 @@ export default function ForgotPasswordPage() {
             <div>
               <h3 className="text-emerald-800 font-semibold text-sm mb-1">Email Sent</h3>
               <p className="text-emerald-600 text-xs">
-                We've sent an email to <strong>{email}</strong> with instructions to reset your password.
+                We&apos;ve sent an email to <strong>{email}</strong> with instructions to reset your password.
               </p>
             </div>
           </div>

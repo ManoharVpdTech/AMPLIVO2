@@ -103,4 +103,4 @@ async def test_expire_stale_sessions_creates_audit_log(
     )
     logs = list(result.scalars())
     assert len(logs) == 1
-    assert logs[0].request_method == "SYSTEM"
+    assert logs[0].action == AuditAction.SESSION_EXPIRED.value

@@ -105,6 +105,7 @@ export function SalesHeader({ title, subtitle, badge, actions }: SalesHeaderProp
         {actions}
         <div className="relative" ref={ref}>
           <button
+            type="button"
             onClick={() => setOpen((o) => !o)}
             className="relative w-9 h-9 rounded-[10px] bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-100 transition-colors"
           >
@@ -151,6 +152,7 @@ export function SalesHeader({ title, subtitle, badge, actions }: SalesHeaderProp
         </div>
         <div className="relative" ref={profileRef}>
           <button
+            type="button"
             onClick={() => setProfileOpen((o) => !o)}
             className="flex items-center gap-1.5"
             title={user?.name ?? 'Sales Admin'}
@@ -305,9 +307,10 @@ export function SalesSidebar() {
           // meetings) - the Leads item intentionally has none, since the total
           // lead count isn't an actionable number and duplicates what the
           // Leads page itself already shows.
-          const dynamicBadge =
-            item.href === '/sales/meetings' ? (scheduledMeetingsCount > 0 ? String(scheduledMeetingsCount) : null) :
-            null;
+          let dynamicBadge: string | null = null;
+          if (item.href === '/sales/meetings' && scheduledMeetingsCount > 0) {
+            dynamicBadge = String(scheduledMeetingsCount);
+          }
           return (
             <Link
               key={item.href}
@@ -349,6 +352,7 @@ export function SalesSidebar() {
         </Link>
         {/* Bug 2 fixed: call logout() then redirect, instead of bare /login link */}
         <button
+          type="button"
           onClick={async () => { try { if (refreshToken) await authService.logout(refreshToken); } catch {} finally { logout(); router.push('/login'); } }}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[#9CA3AF] hover:bg-[#1F2937] hover:text-red-400 text-sm transition-all"
         >

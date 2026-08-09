@@ -50,5 +50,11 @@ export function Logo({ size = 'md', variant = 'dark', href = '/', className }: L
     </div>
   );
 
-  return href ? <Link href={href} className={className}>{content}</Link> : className ? <div className={className}>{content}</div> : content;
+  if (href) {
+    return <Link href={href} className={className}>{content}</Link>;
+  }
+  if (className) {
+    return <div className={className}>{content}</div>;
+  }
+  return content;
 }

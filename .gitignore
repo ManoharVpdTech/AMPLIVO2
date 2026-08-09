@@ -33,7 +33,17 @@ Backend/.env
 # keep the example so others can bootstrap
 !Backend/.env.example
 
+# ── Strix (AI security scanning) ────────────────────────────────
+strix/.env
+strix_runs/
+.strix/
+# keep the example so others can bootstrap
+!strix/.env.example
+
 # ── OS ───────────────────────────────────────────────────────────
 .DS_Store
 Thumbs.db
 desktop.ini
+
+
+temp/

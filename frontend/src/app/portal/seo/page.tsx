@@ -142,7 +142,7 @@ export default function SEOPage() {
             >
               {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
-            <button onClick={handleExport} disabled={exporting || fetchingReport || keywords.length === 0} className="flex items-center gap-2 bg-[#4C1D95] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#3b1574] transition-colors disabled:opacity-60">
+            <button type="button" onClick={handleExport} disabled={exporting || fetchingReport || keywords.length === 0} className="flex items-center gap-2 bg-[#4C1D95] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#3b1574] transition-colors disabled:opacity-60">
               {exporting ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />} Export Report
             </button>
           </div>
@@ -151,7 +151,7 @@ export default function SEOPage() {
 
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl p-4 mb-6">
-          Couldn&apos;t load SEO data. <button onClick={load} className="underline font-medium">Retry</button>
+          Couldn&apos;t load SEO data. <button type="button" onClick={load} className="underline font-medium">Retry</button>
         </div>
       )}
 

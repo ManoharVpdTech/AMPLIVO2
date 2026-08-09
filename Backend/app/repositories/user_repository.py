@@ -13,7 +13,7 @@ class UserRepository:
         self._db = db
 
     async def get_by_id(self, user_id: uuid.UUID, *, include_deleted: bool = False) -> User | None:
-        stmt = select(User).where(User.id == user_id)
+        stmt = select(User).where(User.id == user_id).execution_options(populate_existing=True)
         if not include_deleted:
             stmt = stmt.where(User.is_deleted.is_(False))
         result = await self._db.execute(stmt)

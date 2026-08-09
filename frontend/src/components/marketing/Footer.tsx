@@ -1,12 +1,18 @@
 'use client';
 import Link from 'next/link';
-import { Zap, MapPin, Phone, Mail, ArrowRight } from 'lucide-react';
+import { Zap, MapPin, Mail } from 'lucide-react';
 import { FaInstagram, FaFacebook, FaLinkedin, FaTwitter } from 'react-icons/fa';
 import { services } from '@/data/services';
 
+function getServiceLabel(title: string): string {
+  if (title === 'Search Engine Optimisation') return 'SEO';
+  if (title === 'Branding & Creative Design') return 'Branding & Creative';
+  return title;
+}
+
 const footerLinks = {
   Services: services.map((s) => ({
-    label: s.title === 'Search Engine Optimisation' ? 'SEO' : s.title === 'Branding & Creative Design' ? 'Branding & Creative' : s.title,
+    label: getServiceLabel(s.title),
     href: `/services/${s.slug}`,
   })),
   Company: [

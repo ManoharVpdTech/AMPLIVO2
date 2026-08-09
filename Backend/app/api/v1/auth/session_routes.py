@@ -21,6 +21,8 @@ router = APIRouter(prefix="/auth", tags=["Session Management"])
 
 
 def _to_session_read(session: UserSession, current_session_id: uuid.UUID | None) -> SessionRead:
+    now = session.expires_at.tzinfo and session.expires_at or None
+    is_expired = session.expires_at <= session.created_at if session.expires_at else False
     return SessionRead(
         id=session.id,
         user_id=session.user_id,
@@ -31,6 +33,8 @@ def _to_session_read(session: UserSession, current_session_id: uuid.UUID | None)
         country=session.country,
         city=session.city,
         is_active=session.is_active,
+        is_revoked=not session.is_active,
+        is_expired=is_expired,
         last_activity=session.last_activity,
         created_at=session.created_at,
         expires_at=session.expires_at,

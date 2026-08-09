@@ -3,9 +3,10 @@ import asyncio
 import os
 import sys
 
-sys.path.insert(0, r"C:\Users\DELL\Downloads\AMPLIVOPROJECT (2)\AMPLIVOPROJECT\AMPLIVOPROJECT")
-os.chdir(r"C:\Users\DELL\Downloads\AMPLIVOPROJECT (2)\AMPLIVOPROJECT\AMPLIVOPROJECT")
-os.environ["DB_SSL_MODE"] = "disable"
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+if os.getenv("DB_SSL_MODE") is None:
+    os.environ["DB_SSL_MODE"] = "disable"
 
 from app.db.base import Base
 
@@ -66,7 +67,16 @@ RETRY_ORDER = [
 ]
 
 async def run():
-    conn = await asyncpg.connect("postgresql://postgres:Shivanivpd123@db.fhxkiprlcdwbgtaxlffk.supabase.co:5432/postgres", ssl="require")
+    database_url = os.environ.get("DATABASE_URL")
+    if not database_url:
+        raise SystemExit(
+            "DATABASE_URL env var is not set. This script previously embedded the "
+            "production connection string in source; it now reads it from the environment."
+        )
+    # asyncpg.connect accepts the SQLAlchemy-style URL once the "+asyncpg"
+    # dialect hint is stripped.
+    pg_url = database_url.replace("postgresql+asyncpg://", "postgresql://", 1).split("?")[0]
+    conn = await asyncpg.connect(pg_url, ssl="require")
     
     for table_name in RETRY_ORDER:
         table = Base.metadata.tables[table_name]

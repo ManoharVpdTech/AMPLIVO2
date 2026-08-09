@@ -12,7 +12,7 @@ function extractErrorMessage(err: unknown): string {
   return 'Something went wrong. Please try again.';
 }
 
-export default function PublicProposalPage({ params }: { params: Promise<{ token: string }> }) {
+export default function PublicProposalPage({ params }: Readonly<{ params: Promise<{ token: string }> }>) {
   const { token } = use(params);
 
   const [proposal, setProposal] = useState<ProposalRead | null>(null);

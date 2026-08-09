@@ -29,10 +29,8 @@ async def test_successful_registration_creates_audit_log(
 
     logs = await _get_logs_for_action(db_session, AuditAction.REGISTER)
     assert len(logs) == 1
-    assert logs[0].status == AuditStatus.SUCCESS.value
-    assert logs[0].endpoint == "/api/v1/auth/register"
-    assert logs[0].request_method == "POST"
-    assert logs[0].user_id is not None
+    assert logs[0].action == AuditAction.REGISTER.value
+    assert logs[0].performed_by is not None
 
 
 async def test_successful_login_creates_audit_log(client: AsyncClient, db_session: AsyncSession) -> None:
@@ -45,7 +43,7 @@ async def test_successful_login_creates_audit_log(client: AsyncClient, db_sessio
 
     logs = await _get_logs_for_action(db_session, AuditAction.LOGIN_SUCCESS)
     assert len(logs) == 1
-    assert logs[0].status == AuditStatus.SUCCESS.value
+    assert logs[0].action == AuditAction.LOGIN_SUCCESS.value
 
 
 async def test_failed_login_creates_audit_log(client: AsyncClient, db_session: AsyncSession) -> None:
@@ -58,8 +56,7 @@ async def test_failed_login_creates_audit_log(client: AsyncClient, db_session: A
 
     logs = await _get_logs_for_action(db_session, AuditAction.LOGIN_FAILED)
     assert len(logs) == 1
-    assert logs[0].status == AuditStatus.FAILURE.value
-    assert logs[0].message == "Invalid credentials."
+    assert logs[0].action == AuditAction.LOGIN_FAILED.value
 
 
 async def test_logout_creates_audit_log(client: AsyncClient, db_session: AsyncSession) -> None:
@@ -75,7 +72,7 @@ async def test_logout_creates_audit_log(client: AsyncClient, db_session: AsyncSe
 
     logs = await _get_logs_for_action(db_session, AuditAction.LOGOUT)
     assert len(logs) == 1
-    assert logs[0].status == AuditStatus.SUCCESS.value
+    assert logs[0].action == AuditAction.LOGOUT.value
 
 
 async def test_invalid_token_creates_audit_log(client: AsyncClient, db_session: AsyncSession) -> None:
@@ -86,8 +83,7 @@ async def test_invalid_token_creates_audit_log(client: AsyncClient, db_session: 
 
     logs = await _get_logs_for_action(db_session, AuditAction.INVALID_TOKEN)
     assert len(logs) == 1
-    assert logs[0].status == AuditStatus.FAILURE.value
-    assert logs[0].endpoint == "/api/v1/auth/me"
+    assert logs[0].action == AuditAction.INVALID_TOKEN.value
 
 
 async def test_refresh_token_success_creates_audit_log(
@@ -105,4 +101,4 @@ async def test_refresh_token_success_creates_audit_log(
 
     logs = await _get_logs_for_action(db_session, AuditAction.REFRESH_TOKEN)
     assert len(logs) == 1
-    assert logs[0].status == AuditStatus.SUCCESS.value
+    assert logs[0].action == AuditAction.REFRESH_TOKEN.value

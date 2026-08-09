@@ -54,9 +54,12 @@ export default function CrmReportsPage() {
   });
   const lastMonthRevenue = revenueData[5].actual;
   const prevMonthRevenue = revenueData[4].actual;
-  const revenueDeltaPct = prevMonthRevenue > 0
-    ? Math.round(((lastMonthRevenue - prevMonthRevenue) / prevMonthRevenue) * 100)
-    : (lastMonthRevenue > 0 ? 100 : 0);
+  let revenueDeltaPct = 0;
+  if (prevMonthRevenue > 0) {
+    revenueDeltaPct = Math.round(((lastMonthRevenue - prevMonthRevenue) / prevMonthRevenue) * 100);
+  } else if (lastMonthRevenue > 0) {
+    revenueDeltaPct = 100;
+  }
 
   // Lead Conversion Funnel
   const funnelData = [

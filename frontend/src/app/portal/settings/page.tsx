@@ -257,8 +257,8 @@ export default function SettingsPage() {
 
               <form className="space-y-4" onSubmit={handleSaveProfile}>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Full Name <span className="text-red-500">*</span></label>
-                  <input type="text" required pattern="[A-Za-z\s]+" title="Only letters and spaces are allowed" minLength={2} value={fullName} onChange={(e) => setFullName(e.target.value)} className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#4C1D95]/20 focus:border-[#4C1D95]" />
+                  <label htmlFor="portal-fullname" className="block text-sm font-medium text-slate-700 mb-1.5">Full Name <span className="text-red-500">*</span></label>
+                  <input id="portal-fullname" type="text" required pattern="[A-Za-z\s]+" title="Only letters and spaces are allowed" minLength={2} value={fullName} onChange={(e) => setFullName(e.target.value)} className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#4C1D95]/20 focus:border-[#4C1D95]" />
                 </div>
 
                 <div>

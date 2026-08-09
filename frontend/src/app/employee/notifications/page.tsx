@@ -22,6 +22,7 @@ export default function EmployeeNotifications() {
           
           {/* BUG-08 Fix: Disable "Mark all as read" button when empty or no unread notifications */}
           <button 
+            type="button"
             onClick={() => markAllNotificationsRead()}
             disabled={!hasUnread}
             title={!hasUnread ? "No unread notifications" : undefined}
@@ -56,6 +57,7 @@ export default function EmployeeNotifications() {
                   <div className="flex items-center gap-4">
                     {!n.read && (
                       <button 
+                        type="button"
                         onClick={() => markNotificationRead(n.id)}
                         className="text-xs font-medium text-indigo-600 hover:text-indigo-800"
                       >

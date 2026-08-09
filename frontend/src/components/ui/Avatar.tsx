@@ -15,7 +15,7 @@ const sizeMap = {
   lg: 'w-14 h-14 text-base',
 };
 
-export function Avatar({ name, image, size = 'sm', className = '' }: AvatarProps) {
+export function Avatar({ name, image, size = 'sm', className = '' }: Readonly<AvatarProps>) {
   const [imgError, setImgError] = useState(false);
   const sizeClass = sizeMap[size];
 
