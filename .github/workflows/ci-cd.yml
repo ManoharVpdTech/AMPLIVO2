@@ -13,3 +13,23 @@ jobs:
           node-version-file: frontend/.node-version
       - run: npm ci
       - run: npm run build
+
+  # SECRETS: fail the build if a live credential is committed. Runs on the
+  # full git history so a secret introduced in any past commit is caught,
+  # not just one added in the current PR.
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Gitleaks (default rules)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Known-leaked credential regression guard
+        run: |
+          if git log --all --oneline -S 'Shivanivpd123' -- Backend render.yaml scripts | grep .; then
+            echo "ERROR: the previously-leaked DB password is referenced in history or working tree."
+            exit 1
+          fi

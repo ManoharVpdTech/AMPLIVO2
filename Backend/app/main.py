@@ -8,6 +8,7 @@ from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
+from prometheus_fastapi_instrumentator import Instrumentator
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -49,6 +50,10 @@ async def lifespan(app: FastAPI):
         # Demo data seeding is deferred to a background task so it never
         # blocks the application from starting up to serve requests.
         asyncio.create_task(_seed_demo_background())
+        # A09: purge audit_logs / activity_logs / login_history older than
+        # AUDIT_LOG_RETENTION_DAYS so the tracking tables can't grow without
+        # bound (there was previously no retention job at all).
+        asyncio.create_task(_purge_old_audit_logs())
     else:
         logger.warning(
             "Database connection could not be verified at startup — "
@@ -57,6 +62,37 @@ async def lifespan(app: FastAPI):
     yield
     await engine.dispose()
     await close_redis()
+
+
+async def _purge_old_audit_logs() -> None:
+    """One-shot retention cleanup, safe to run every boot (idempotent)."""
+    try:
+        from datetime import datetime, timedelta, timezone
+
+        from app.db.session import AsyncSessionLocal
+        from app.models.audit_log import AuditLog
+        from app.modules.activity_timeline.models import ActivityLog
+
+        cutoff = datetime.now(timezone.utc) - timedelta(days=settings.AUDIT_LOG_RETENTION_DAYS)
+        removed = 0
+        async with AsyncSessionLocal() as session:
+            for model in (AuditLog, ActivityLog):
+                res = await session.execute(
+                    text(
+                        f"DELETE FROM {model.__tablename__} "
+                        "WHERE created_at < :cutoff"
+                    ).bindparams(cutoff=cutoff)
+                )
+                removed += res.rowcount or 0
+            await session.commit()
+        if removed:
+            logger.info(
+                "Retention cleanup removed %d rows older than %d days",
+                removed,
+                settings.AUDIT_LOG_RETENTION_DAYS,
+            )
+    except Exception:
+        logger.exception("Audit-log retention cleanup failed — continuing.")
 
 
 async def _seed_demo_background() -> None:
@@ -81,10 +117,25 @@ app = FastAPI(
         "retrieval, and Phase 2 enterprise security (audit logging, login "
         "history, account lockout, device tracking, rate limiting)."
     ),
-    openapi_url=f"{settings.API_V1_PREFIX}/openapi.json",
-    docs_url=f"{settings.API_V1_PREFIX}/docs",
-    redoc_url=f"{settings.API_V1_PREFIX}/redoc",
     lifespan=lifespan,
+    # MED-1: interactive API docs (Swagger/ReDoc + the raw OpenAPI JSON) are
+    # a high-value discovery surface in production. They enumerate every
+    # route, schema, and accepted field. Enabled only outside "production".
+    openapi_url=(
+        None
+        if settings.ENVIRONMENT == "production"
+        else f"{settings.API_V1_PREFIX}/openapi.json"
+    ),
+    docs_url=(
+        None
+        if settings.ENVIRONMENT == "production"
+        else f"{settings.API_V1_PREFIX}/docs"
+    ),
+    redoc_url=(
+        None
+        if settings.ENVIRONMENT == "production"
+        else f"{settings.API_V1_PREFIX}/redoc"
+    ),
 )
 
 # Middleware is added innermost-first: Starlette wraps the stack so the LAST
@@ -126,15 +177,59 @@ app.add_middleware(
 
 register_exception_handlers(app)
 
+# A09: Prometheus metrics at GET /metrics (disabled in schema/docs; always
+# reachable, no auth on purpose — scrape endpoints are internal-facing).
+# The /health probe is excluded from latency histograms so it doesn't skew
+# the request-profile (it is polled constantly by Render).
+Instrumentator(excluded_handlers=["/health", "/health/ready", "/"]).instrument(app).expose(
+    app,
+    endpoint="/metrics",
+    include_in_schema=False,
+)
+
 UPLOADS_DIR = Path(__file__).resolve().parent.parent / "uploads"
 UPLOADS_DIR.mkdir(exist_ok=True)
-app.mount("/uploads", StaticFiles(directory=str(UPLOADS_DIR)), name="uploads")
+
+
+class _HardenedStaticFiles(StaticFiles):
+    """StaticFiles variant that never lets a browser *render* an uploaded
+    file inline.
+
+    Defense-in-depth for CRIT-1: the upload allowlist keeps HTML/SVG/etc.
+    out of the store, but a file that already slipped in (pre-fix), or a
+    future regression, must not be executable via /uploads either. These two
+    headers make every response a download:
+      - X-Content-Type-Options: nosniff  — browser must not MIME-sniff
+      - Content-Disposition: attachment  — treated as a download, not page
+    """
+
+    async def get_response(self, path, scope):
+        response = await super().get_response(path, scope)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        # Only content-type values that might render active content get forced
+        # to attachment; images stay inline so the portal previews still work.
+        content_type = response.headers.get("content-type", "").lower()
+        if any(
+            marker in content_type
+            for marker in ("text/html", "svg+xml", "text/xml", "application/xml",
+                          "text/javascript", "application/javascript", "application/json")
+        ):
+            response.headers["Content-Disposition"] = "attachment"
+        return response
+
+
+app.mount("/uploads", _HardenedStaticFiles(directory=str(UPLOADS_DIR)), name="uploads")
 
 app.include_router(api_router, prefix=settings.API_V1_PREFIX)
 
 
 @app.get("/", include_in_schema=False)
 async def root():
+    if settings.ENVIRONMENT == "production":
+        return JSONResponse(
+            {"service": "Amplivo API", "docs": "disabled in production"},
+            status_code=200,
+        )
     return RedirectResponse(url=f"{settings.API_V1_PREFIX}/docs")
 
 

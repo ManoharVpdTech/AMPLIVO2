@@ -3,7 +3,13 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from sqlalchemy import text
 import os
 
-DATABASE_URL = "postgresql+asyncpg://postgres.fhxkiprlcdwbgtaxlffk:Shivanivpd123@aws-0-ap-northeast-1.pooler.supabase.com:5432/postgres?prepared_statement_cache_size=0"
+DATABASE_URL = os.environ.get("DATABASE_URL")
+if not DATABASE_URL:
+    raise SystemExit(
+        "DATABASE_URL env var is not set. This script previously embedded the "
+        "production connection string in source; it now must be provided via "
+        "the environment (set DATABASE_URL before running)."
+    )
 
 async def main():
     engine = create_async_engine(DATABASE_URL)

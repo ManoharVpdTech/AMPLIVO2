@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
 
 export interface User {
   id: string;
@@ -63,6 +63,12 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'auth-storage',
+      // MED-2: persist tokens to sessionStorage, NOT localStorage. A JWT that
+      // lives in localStorage survives the browser tab and is readable by any
+      // script on the same origin indefinitely; sessionStorage bounds it to
+      // the current tab and clears it when the tab closes, shrinking the
+      // stolen-token window on shared machines.
+      storage: createJSONStorage(() => sessionStorage),
       onRehydrateStorage: () => (state) => {
         state?.setHasHydrated(true);
       },

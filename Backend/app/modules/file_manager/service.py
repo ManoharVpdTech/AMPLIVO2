@@ -1,7 +1,10 @@
 """Service for the File Manager module."""
 from __future__ import annotations
 
+import logging
+import os
 import uuid
+from pathlib import Path
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -10,6 +13,10 @@ from app.modules.file_manager.repository import FileFolderRepository, FileReposi
 from app.modules.file_manager.schemas import FileFolderCreate, FileCreate
 from app.core.exceptions import NotFoundException
 from app.core.tenant_scope import enforce_client_scope
+
+logger = logging.getLogger("app.file_manager")
+
+UPLOADS_DIR = Path(__file__).resolve().parents[3] / "uploads"
 
 
 class FileFolderService:
@@ -54,5 +61,26 @@ class FileService:
         return await self._repo.create_from_dict(data.model_dump())
 
     async def delete(self, id: uuid.UUID, *, scoped_client_id: uuid.UUID | None = None) -> None:
-        await self.get(id, scoped_client_id=scoped_client_id)
+        obj = await self.get(id, scoped_client_id=scoped_client_id)
+        # CRIT-1a: delete the on-disk blob too, not just the DB row. Otherwise
+        # a deleted record keeps being served from /uploads/{name} and the
+        # original upload persists indefinitely.
+        self._unlink_physical(obj)
         await self._repo.delete(id)
+
+    @staticmethod
+    def _unlink_physical(file: File) -> None:
+        """Remove the physical blob, guarded against path traversal.
+
+        Only ever deletes inside UPLOADS_DIR; `file.name` is always a
+        server-generated `<uuid>.<ext>` value in practice, but we assert the
+        resolved path stays under the upload root regardless.
+        """
+        name = file.name or ""
+        path = (UPLOADS_DIR / Path(name).name).resolve()
+        uploads_root = UPLOADS_DIR.resolve()
+        if uploads_root in path.parents:
+            try:
+                path.unlink(missing_ok=True)
+            except OSError:  # noqa: B014
+                logger.exception("Failed to unlink uploaded file %s", path)

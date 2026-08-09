@@ -1,7 +1,7 @@
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import Field
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -15,9 +15,13 @@ class Settings(BaseSettings):
     # The single connection string SQLAlchemy/asyncpg actually connects
     # with. Everything else DB-related below configures how that connection
     # behaves (pooling, SSL) - it does not change which database is used.
-    DATABASE_URL: str = Field(
-        default="postgresql+asyncpg://postgres.fhxkiprlcdwbgtaxlffk:Shivanivpd123@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres"
-    )
+    #
+    # SECURITY: there is intentionally NO real credential baked in here. The
+    # live Supabase password was previously committed at this field's default;
+    # that constant is gone. In production the app FAILS CLOSED at boot (see
+    # _fail_closed_in_production below) if DATABASE_URL / JWT_SECRET_KEY are
+    # missing, empty, or still the documented dev placeholders.
+    DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/amplivo_erp"
 
     DB_POOL_SIZE: int = 5
     DB_MAX_OVERFLOW: int = 10
@@ -39,7 +43,7 @@ class Settings(BaseSettings):
     SUPABASE_ANON_KEY: str | None = None
     SUPABASE_SERVICE_ROLE_KEY: str | None = None
 
-    JWT_SECRET_KEY: str = Field(default="CHANGE_ME_IN_PRODUCTION")
+    JWT_SECRET_KEY: str = ""
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
@@ -120,6 +124,42 @@ class Settings(BaseSettings):
     # Log requests that take longer than this threshold (milliseconds) at INFO
     # level instead of DEBUG.
     SLOW_REQUEST_THRESHOLD_MS: int = 1000
+
+    # ── Data retention (A09) ─────────────────────────────────────────────────
+    # audit_logs / activity_logs / login_history rows older than this many
+    # days are purged by the startup retention task.
+    AUDIT_LOG_RETENTION_DAYS: int = 90
+
+    # Known non-production placeholder values. In production mode a boot with
+    # any of these is treated as a hard misconfiguration (see validator below).
+    _PLACEHOLDER_SECRETS = {"", "CHANGE_ME_IN_PRODUCTION", "change-this-to-a-long-random-secret-in-production"}
+    _PLACEHOLDER_DB_PREFIXES = ("postgresql+asyncpg://postgres:postgres@localhost",)
+
+    @model_validator(mode="after")
+    def _fail_closed_in_production(self) -> "Settings":
+        """Refuse to boot with forgable/leaked credentials when ENVIRONMENT
+        is production.
+
+        A missing JWT secret would let anyone mint valid tokens for any user
+        (HS256 with a known key); a placeholder DB URL means the app would
+        quietly connect to the wrong database. Both are boot-time, fail-fast
+        errors instead of runtime surprises.
+        """
+        if self.ENVIRONMENT != "production":
+            return self
+
+        if self.JWT_SECRET_KEY.strip() in self._PLACEHOLDER_SECRETS:
+            raise ValueError(
+                "JWT_SECRET_KEY must be set to a real secret in production "
+                "(it was empty or still the dev placeholder)."
+            )
+
+        if not self.DATABASE_URL.strip() or self.DATABASE_URL.strip().startswith(self._PLACEHOLDER_DB_PREFIXES):
+            raise ValueError(
+                "DATABASE_URL must be set to the production connection string "
+                "(it was empty or still a localhost placeholder)."
+            )
+        return self
 
 
 @lru_cache

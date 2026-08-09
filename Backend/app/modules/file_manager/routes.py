@@ -24,6 +24,46 @@ UPLOADS_DIR = Path(__file__).resolve().parents[3] / "uploads"
 UPLOADS_DIR.mkdir(exist_ok=True)
 MAX_UPLOAD_SIZE = 20 * 1024 * 1024  # 20MB
 
+# File-upload allowlist (CRIT-1 / A08): only these extensions and content
+# types are accepted. Anything that can be executed or rendered as active
+# content in a browser (HTML, SVG, XML, JS, JSON, MHTML, PDF-with-JS) is
+# rejected outright, fixing the stored-XSS path where a `.html` upload was
+# served back with `Content-Type: text/html`.
+_ALLOWED_EXTENSIONS = frozenset({
+    ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx",
+    ".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp",
+    ".txt", ".csv", ".md", ".rtf",
+    ".zip", ".7z", ".tar", ".gz",
+})
+
+_ALLOWED_MIME_TYPES = frozenset({
+    # Office documents
+    "application/pdf",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "application/vnd.ms-excel",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "application/vnd.ms-powerpoint",
+    "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    # Images (raster only - no SVG, which can carry embedded scripts)
+    "image/png", "image/jpeg", "image/gif", "image/webp", "image/bmp",
+    # Plain text/data
+    "text/plain", "text/csv", "text/markdown", "application/rtf",
+    # Archives
+    "application/zip", "application/x-zip-compressed",
+    "application/x-7z-compressed", "application/x-rar-compressed",
+    "application/gzip",
+})
+
+# Content types that must NEVER be served even if the extension check passed
+# (defense-in-depth; browsers will happily execute these despite a benign
+# extension).
+_DENIED_MIME_PREFIXES = (
+    "text/html", "application/xhtml+xml", "image/svg+xml",
+    "text/javascript", "application/javascript", "application/x-javascript",
+    "application/xml", "text/xml",
+)
+
 
 @router.post("/upload", response_model=FileRead, status_code=status.HTTP_201_CREATED, summary="Upload a file")
 async def upload_file(
@@ -49,7 +89,21 @@ async def upload_file(
         raise BadRequestException("File exceeds the 20MB upload limit.")
 
     original_name = upload.filename or "file"
-    safe_suffix = Path(original_name).suffix
+    safe_suffix = Path(original_name).suffix.lower()
+    if safe_suffix not in _ALLOWED_EXTENSIONS:
+        raise BadRequestException(
+            f"File type '{safe_suffix or '(none)'}' is not allowed. "
+            f"Allowed: {', '.join(sorted(_ALLOWED_EXTENSIONS))}."
+        )
+
+    content_type = (upload.content_type or "").strip().lower()
+    if content_type.startswith(_DENIED_MIME_PREFIXES):
+        raise BadRequestException("This file type is not allowed.")
+    if content_type and content_type not in _ALLOWED_MIME_TYPES:
+        raise BadRequestException(
+            f"Content type '{content_type}' is not allowed."
+        )
+
     stored_name = f"{uuid.uuid4().hex}{safe_suffix}"
     (UPLOADS_DIR / stored_name).write_bytes(contents)
 
