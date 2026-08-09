@@ -2,6 +2,9 @@ from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoin
 from starlette.requests import Request
 from starlette.responses import Response
 
+from app.core.exceptions import InvalidContentLengthException, PayloadTooLargeException
+from app.middleware.exception_handler import error_response
+
 class ContentSizeLimitMiddleware(BaseHTTPMiddleware):
     def __init__(self, app, max_content_size: int = 102_400):  # 100 KB
         super().__init__(app)
@@ -13,7 +16,7 @@ class ContentSizeLimitMiddleware(BaseHTTPMiddleware):
             if content_length:
                 try:
                     if int(content_length) > self.max_content_size:
-                        return Response("Payload Too Large", status_code=413)
+                        return error_response(PayloadTooLargeException(), request)
                 except ValueError:
-                    return Response("Invalid Content-Length", status_code=400)
+                    return error_response(InvalidContentLengthException(), request)
         return await call_next(request)

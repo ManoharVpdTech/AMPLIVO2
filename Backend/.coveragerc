@@ -1,0 +1,17 @@
+[run]
+source = app
+omit =
+    app/tests/*
+    app/scripts/*
+    app/schemas/*
+    app/services/pdf_service.py
+    app/services/geolocation_service.py
+
+[report]
+show_missing = true
+skip_covered = false
+fail_under = 80
+exclude_lines =
+    pragma: no cover
+    if __name__ == .__main__.:
+    raise NotImplementedError

@@ -80,12 +80,12 @@ export default function LoginPage() {
   const setDemoCredentials = (role: 'client' | 'admin' | 'sales' | 'hr' | 'employee' | 'crm') => {
     setValue('email', role === 'crm' ? 'crm@amplivo.in' : `${role}@amplivo.in`);
     const passwords: Record<string, string> = {
-      admin: 'Admin@123',
-      client: 'Client@123',
-      sales: 'Sales@123',
-      hr: 'Hr@12345',
-      employee: 'Employee@123',
-      crm: 'Crm@1234',
+      admin: 'Amplivo!Admin2026',
+      client: 'Amplivo!Client2026',
+      sales: 'Amplivo!Sales2026',
+      hr: 'Amplivo!Hr2026',
+      employee: 'Amplivo!Emp2026',
+      crm: 'Amplivo!Crm2026',
     };
     setValue('password', passwords[role]);
   };
@@ -134,7 +134,7 @@ export default function LoginPage() {
               if (!e.target.value) return;
               const slug = e.target.value.toLowerCase().replace(/[\s\/]+/g, '');
               setValue('email', `${slug}@amplivo.in`);
-              setValue('password', 'Employee@123');
+              setValue('password', 'Amplivo!Emp2026');
             }}
             defaultValue=""
           >

@@ -32,7 +32,7 @@ class TestimonialService:
         obj = await self._repo.get_by_id(id)
         if not obj:
             raise NotFoundException(detail="Testimonial not found")
-        await self._repo.update(obj, data.model_dump(exclude_unset=True))
+        await self._repo.update(obj.id, data.model_dump(exclude_unset=True))
         return await self._repo.get_by_id(id)
 
     async def delete(self, id: uuid.UUID) -> None:

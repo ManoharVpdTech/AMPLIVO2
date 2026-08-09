@@ -15,7 +15,7 @@ async def test_crud():
     
     async with AsyncClient(transport=transport, base_url="http://testserver", timeout=30) as client:
         # 1. Admin Login
-        res_admin = await client.post("/api/v1/auth/login", json={"identifier": "admin@amplivo.in", "password": "Admin@123"})
+        res_admin = await client.post("/api/v1/auth/login", json={"identifier": "admin@amplivo.in", "password": "Amplivo!Admin2026"})
         token_admin = res_admin.json()["access_token"]
         headers_admin = {"Authorization": f"Bearer {token_admin}"}
         
@@ -32,7 +32,7 @@ async def test_crud():
             print(f"   Branch Created: {b_res.json().get('id')} - {b_res.json().get('name')}")
             
         # 2. Sales Login
-        res_sales = await client.post("/api/v1/auth/login", json={"identifier": "sales@amplivo.in", "password": "Sales@123"})
+        res_sales = await client.post("/api/v1/auth/login", json={"identifier": "sales@amplivo.in", "password": "Amplivo!Sales2026"})
         token_sales = res_sales.json()["access_token"]
         headers_sales = {"Authorization": f"Bearer {token_sales}"}
         
@@ -58,7 +58,7 @@ async def test_crud():
                 print(f"   Invoice Created: {inv_res.json().get('id')} - {inv_res.json().get('invoice_number')}")
 
         # 3. HR Login
-        res_hr = await client.post("/api/v1/auth/login", json={"identifier": "hr@amplivo.in", "password": "Hr@12345"})
+        res_hr = await client.post("/api/v1/auth/login", json={"identifier": "hr@amplivo.in", "password": "Amplivo!Hr2026"})
         token_hr = res_hr.json()["access_token"]
         headers_hr = {"Authorization": f"Bearer {token_hr}"}
         

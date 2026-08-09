@@ -22,13 +22,17 @@
 7. Secrets: any credentials committed in the repo (e.g. config defaults).
 
 ## Authenticated testing credentials (our own demo users)
-- admin@amplivo.in / Admin@123   (admin)
-- sales@amplivo.in / Sales@123   (sales)
-- crm@amplivo.in / Crm@1234      (crm)
-- finance@amplivo.in / Finance@123
-- employee@amplivo.in / Employee@123
-- hr@amplivo.in / Hr@12345
-- client@amplivo.in / Client@123 (seeded by seed_client_portal_demo.py)
+Passwords are NOT stored in this repo. Set them as environment variables
+before running a scan (see `strix/.env.example`); only roles that exist are
+listed. Client is seeded separately by `seed_client_portal_demo.py`.
+
+- STRIX_ADMIN_TEST_EMAIL / STRIX_ADMIN_TEST_PASSWORD    (admin)
+- STRIX_SALES_TEST_EMAIL / STRIX_SALES_TEST_PASSWORD    (sales)
+- STRIX_CRM_TEST_EMAIL / STRIX_CRM_TEST_PASSWORD        (crm)
+- STRIX_FINANCE_TEST_EMAIL / STRIX_FINANCE_TEST_PASSWORD (finance)
+- STRIX_EMPLOYEE_TEST_EMAIL / STRIX_EMPLOYEE_TEST_PASSWORD (employee)
+- STRIX_HR_TEST_EMAIL / STRIX_HR_TEST_PASSWORD          (hr)
+- STRIX_CLIENT_TEST_EMAIL / STRIX_CLIENT_TEST_PASSWORD  (client)
 
 ## Run commands
 # Local source-aware scan (white-box):

@@ -241,7 +241,7 @@ async def seed():
         await session.commit()
 
         print("\nClient portal demo data seeded successfully!")
-        print(f"Login as client@amplivo.in / Client@123 to view '{DEMO_CLIENT_NAME}' data.")
+        print(f"Login as client@amplivo.in / Amplivo!Client2026 to view '{DEMO_CLIENT_NAME}' data.")
 
 
 if __name__ == "__main__":

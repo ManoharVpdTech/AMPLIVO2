@@ -9,11 +9,11 @@ from app.main import app
 transport = ASGITransport(app=app)
 
 USERS_TO_TEST = [
-    {"role": "Admin", "email": "admin@amplivo.in", "password": "Admin@123"},
-    {"role": "Client", "email": "client@amplivo.in", "password": "Client@123"},
-    {"role": "Sales", "email": "sales@amplivo.in", "password": "Sales@123"},
-    {"role": "HR", "email": "hr@amplivo.in", "password": "Hr@12345"},
-    {"role": "Employee", "email": "employee@amplivo.in", "password": "Employee@123"},
+    {"role": "Admin", "email": "admin@amplivo.in", "password": "Amplivo!Admin2026"},
+    {"role": "Client", "email": "client@amplivo.in", "password": "Amplivo!Client2026"},
+    {"role": "Sales", "email": "sales@amplivo.in", "password": "Amplivo!Sales2026"},
+    {"role": "HR", "email": "hr@amplivo.in", "password": "Amplivo!Hr2026"},
+    {"role": "Employee", "email": "employee@amplivo.in", "password": "Amplivo!Emp2026"},
 ]
 
 ROLE_ENDPOINTS = {

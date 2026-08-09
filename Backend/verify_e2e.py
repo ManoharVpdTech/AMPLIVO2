@@ -23,11 +23,11 @@ def get(url, headers=None):
 print('=== LOGIN VERIFICATION ===')
 role_redirects = {'Admin': '/admin', 'Client': '/portal', 'Sales': '/sales', 'HR': '/hr', 'Employee': '/employee'}
 demo_users = [
-    ('admin@amplivo.in', 'Admin@123'),
-    ('client@amplivo.in', 'Client@123'),
-    ('sales@amplivo.in', 'Sales@123'),
-    ('hr@amplivo.in', 'Hr@12345'),
-    ('employee@amplivo.in', 'Employee@123'),
+    ('admin@amplivo.in', 'Amplivo!Admin2026'),
+    ('client@amplivo.in', 'Amplivo!Client2026'),
+    ('sales@amplivo.in', 'Amplivo!Sales2026'),
+    ('hr@amplivo.in', 'Amplivo!Hr2026'),
+    ('employee@amplivo.in', 'Amplivo!Emp2026'),
 ]
 all_pass = True
 for email, pwd in demo_users:
@@ -87,7 +87,7 @@ if submitted_id:
 print()
 print('=== ADMIN DASHBOARD VIEW ===')
 try:
-    admin_tokens = post(f'{base}/auth/login', {'identifier': 'admin@amplivo.in', 'password': 'Admin@123'})
+    admin_tokens = post(f'{base}/auth/login', {'identifier': 'admin@amplivo.in', 'password': 'Amplivo!Admin2026'})
     admin_records = get(f'{base}/consultation-requests', {'Authorization': f'Bearer {admin_tokens["access_token"]}'})
     print(f'  PASS  Admin can view {len(admin_records)} consultation request(s)')
     for r in admin_records[-3:]:

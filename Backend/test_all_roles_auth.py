@@ -8,11 +8,11 @@ from app.main import app
 transport = ASGITransport(app=app)
 
 ROLES_TEST = [
-    ("Admin", "admin@amplivo.in", "Admin@123", ["/api/v1/users", "/api/v1/roles", "/api/v1/companies", "/api/v1/analytics/dashboards"]),
-    ("Client", "client@amplivo.in", "Client@123", ["/api/v1/portal/announcements", "/api/v1/portal/resources"]),
-    ("Sales", "sales@amplivo.in", "Sales@123", ["/api/v1/leads", "/api/v1/finance/invoices", "/api/v1/campaigns"]),
-    ("HR", "hr@amplivo.in", "Hr@12345", ["/api/v1/careers", "/api/v1/users/departments"]),
-    ("Employee", "employee@amplivo.in", "Employee@123", ["/api/v1/tasks", "/api/v1/timesheets", "/api/v1/notifications"]),
+    ("Admin", "admin@amplivo.in", "Amplivo!Admin2026", ["/api/v1/users", "/api/v1/roles", "/api/v1/companies", "/api/v1/analytics/dashboards"]),
+    ("Client", "client@amplivo.in", "Amplivo!Client2026", ["/api/v1/portal/announcements", "/api/v1/portal/resources"]),
+    ("Sales", "sales@amplivo.in", "Amplivo!Sales2026", ["/api/v1/leads", "/api/v1/finance/invoices", "/api/v1/campaigns"]),
+    ("HR", "hr@amplivo.in", "Amplivo!Hr2026", ["/api/v1/careers", "/api/v1/users/departments"]),
+    ("Employee", "employee@amplivo.in", "Amplivo!Emp2026", ["/api/v1/tasks", "/api/v1/timesheets", "/api/v1/notifications"]),
 ]
 
 async def test():

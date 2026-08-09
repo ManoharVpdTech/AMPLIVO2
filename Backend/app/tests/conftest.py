@@ -70,3 +70,16 @@ async def db_session() -> AsyncGenerator[AsyncSession, None]:
     """
     async with TestSessionLocal() as session:
         yield session
+
+@pytest_asyncio.fixture
+async def admin_client(client: AsyncClient, db_session: AsyncSession) -> AsyncClient:
+    from app.tests.helpers_crud import make_authed_client
+
+    return await make_authed_client(db_session, client, "admin")
+
+
+@pytest_asyncio.fixture
+async def staff_client(client: AsyncClient, db_session: AsyncSession) -> AsyncClient:
+    from app.tests.helpers_crud import make_authed_client
+
+    return await make_authed_client(db_session, client, "employee")

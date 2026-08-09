@@ -7,11 +7,11 @@ from app.modules.users.models import Role, Permission, RolePermission, Branch, D
 from app.utils.password import verify_password, hash_password
 
 DEMO_ACCOUNTS = [
-    ("admin@amplivo.in", "Admin@123"),
-    ("client@amplivo.in", "Client@123"),
-    ("sales@amplivo.in", "Sales@123"),
-    ("hr@amplivo.in", "Hr@12345"),
-    ("employee@amplivo.in", "Employee@123"),
+    ("admin@amplivo.in", "Amplivo!Admin2026"),
+    ("client@amplivo.in", "Amplivo!Client2026"),
+    ("sales@amplivo.in", "Amplivo!Sales2026"),
+    ("hr@amplivo.in", "Amplivo!Hr2026"),
+    ("employee@amplivo.in", "Amplivo!Emp2026"),
 ]
 
 async def check_and_fix():
