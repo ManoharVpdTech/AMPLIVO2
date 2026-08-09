@@ -32,7 +32,7 @@ export default function AdminSettings() {
     primary_color: '#4C1D95',
     secondary_color: '#06B6D4',
     custom_domain: 'agency.amplivo.in',
-    api_key: 'amp_live_9837429874928374',
+    api_key: 'demo-placeholder-not-a-real-key',
     email_notifications: true,
     slack_notifications: true,
     two_factor_auth: false,
@@ -66,7 +66,7 @@ export default function AdminSettings() {
     })();
   }, []);
 
-  const updateField = (key: string, value: any) => {
+  const updateField = <K extends keyof typeof form>(key: K, value: (typeof form)[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 

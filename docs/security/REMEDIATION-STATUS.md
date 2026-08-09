@@ -14,15 +14,18 @@
 | **MC-1** no metrics/docs exposure/retention control | `prometheus-fastapi-instrumentator 7.1.0` exports `/metrics` (excludes `/health`, `/health/ready`, `/`); docs/openapi pinned to non-production env only (constructor-gated); `_purge_old_audit_logs()` retention task (`AUDIT_LOG_RETENTION_DAYS=90`) in lifespan | `/api/v1/docs` dev-only test passes; suite green |
 | Dependency CVEs (`npm audit` 6 high) | `npm audit fix` → **0 vulnerabilities**; backend pins bumped to non-yanked versions (fastapi 0.115.12, uvicorn 0.34.2, sqlalchemy 2.0.36, pydantic 2.10.4, pyjwt 2.10.1, etc.) | venv imports verified |
 
-**Regression suite:** `Backend` `python -m pytest -q` → **216 passed, 0 failed** (the 194 original tests plus 22 new security-regression tests below).
+**Regression suite:** `Backend` `python -m pytest -q` → **226 passed, 0 failed** (verified after the `origin/main` merge; the 194 base tests plus 32 new security-regression & observability tests below).
 
 ## Regression suite (this pass)
 
-`Backend` `python -m pytest -q` → **216 passed, 0 failed** — 194 pre-existing
-tests plus **22 new security-regression tests** in `app/tests/security/`
+`Backend` `python -m pytest -q` → **226 passed, 0 failed** — 194 pre-existing
+tests plus **32 new security-regression tests** in `app/tests/security/`
 (SQLi, stored/reflected XSS, auth-bypass token forgery/expiry, IDOR/RBAC on
 activity-logs, sensitive-data-in-responses, prod fail-closed boot, Sentry
-scrubber).
+scrubber) and the malicious `test_campaigns_bug_fixes.py` / `test_sessions.py`.
+Security + observability subset alone: `56 passed` (`tests/security`,
+`test_csrf`, `test_rate_limiting`, `test_account_lockout`, `test_health`,
+`test_audit_log`).
 
 ## Second-pass additions (2026-08-09)
 

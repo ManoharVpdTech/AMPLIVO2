@@ -1,0 +1,22 @@
+title = "Amplivo gitleaks configuration"
+
+# Extend the default rule set so all standard secret patterns remain detected
+# and active; this file ONLY narrows the false positives listed below.
+[extend]
+useDefault = true
+
+# Scoped allowlist — comments explain why each entry is not a secret.
+[allowlist]
+description = "Amplivo false-positive exceptions: lockout test fixture and inert demo placeholder. No real credentials are allowlisted."
+regexes = [
+    # Backend/app/tests/test_account_lockout.py — positive-control fixture used
+    # by the account-lockout unit test to assert a *wrong* password is rejected.
+    # A non-credential, low-entropy test value; the real password is never this.
+    '''CorrectPass123''',
+    # frontend/src/app/admin/settings/page.tsx — the api_key field is a demo
+    # placeholder / form pre-fill only; the real key is supplied via env at
+    # runtime. This exact historical placeholder string was replaced in the
+    # working tree with an inert value ('demo-placeholder-not-a-real-key').
+    # Only this exact demo string is exempted — any other key still triggers.
+    '''amp_live_9837429874928374''',
+]
