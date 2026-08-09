@@ -32,8 +32,8 @@ class TimesheetService:
         obj = await self._repo.get_by_id(id)
         if not obj:
             raise NotFoundException(detail="Timesheet not found")
-        await self._repo.update(obj.id, data.model_dump(exclude_unset=True))
-        return await self._repo.get_by_id(id)
+        updated_obj = await self._repo.update(obj.id, data.model_dump(exclude_unset=True))
+        return updated_obj
 
     async def delete(self, id: uuid.UUID) -> None:
         obj = await self._repo.get_by_id(id)

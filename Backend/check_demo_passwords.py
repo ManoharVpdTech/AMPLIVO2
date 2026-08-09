@@ -1,5 +1,6 @@
 import asyncio
 from sqlalchemy import select
+from app.main import app  # Load all models into metadata
 from app.db.session import AsyncSessionLocal
 from app.models.user import User
 from app.models.refresh_token import RefreshToken  # noqa: F401

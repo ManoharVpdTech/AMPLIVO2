@@ -53,7 +53,9 @@ class Settings(BaseSettings):
     CORS_ORIGINS: str = (
         "http://localhost:3000,http://127.0.0.1:3000,"
         "http://localhost:3001,http://127.0.0.1:3001,"
-        "https://amplivo-front-and-backend.vercel.app,https://amplivo-2.vercel.app"
+        "https://amplivo-front-and-backend.vercel.app,https://amplivo-2.vercel.app,"
+        "https://amplivo.vercel.app,https://amplivo.in,https://www.amplivo.in,"
+        "https://amplivo-frontend.onrender.com"
     )
 
     @property

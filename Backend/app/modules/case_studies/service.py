@@ -18,7 +18,7 @@ class CaseStudyService:
         self._metric_repo = CaseStudyMetricRepository(session)
 
     async def list_all(self, skip: int = 0, limit: int = 100) -> list[CaseStudy]:
-        return await self._repo.get_all(offset=skip, limit=limit)
+        return await self._repo.get_all_detailed(offset=skip, limit=limit)
 
     async def get(self, id: uuid.UUID) -> CaseStudy:
         obj = await self._repo.get_detail(id)

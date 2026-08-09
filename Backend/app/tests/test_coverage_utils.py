@@ -3,7 +3,7 @@ import logging
 import queue
 import sys
 import threading
-from datetime import datetime
+from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 import pytest
@@ -200,7 +200,7 @@ def test_apply_search_builds_clause() -> None:
 
 def test_apply_date_range() -> None:
     stmt = select()
-    now = datetime.now(datetime.UTC)
+    now = datetime.now(timezone.utc)
     s1 = apply_date_range(stmt, column=column("created_at"), after=now)
     s2 = apply_date_range(s1, column=column("created_at"), before=now)
     s3 = apply_date_range(s2, column=column("created_at"))
