@@ -148,7 +148,19 @@ class NotFoundException(AppException):
     status_code = 404
     error_code = "not_found"
 
-    def __init__(self, resource: str = "Resource", identifier: str | None = None) -> None:
+    def __init__(
+        self,
+        resource: str = "Resource",
+        identifier: str | None = None,
+        detail: str | None = None,
+        message: str | None = None,
+    ) -> None:
+        if detail is not None:
+            super().__init__(detail)
+            return
+        if message is not None:
+            super().__init__(message)
+            return
         detail = f"{resource} not found." if not identifier else f"{resource} '{identifier}' not found."
         super().__init__(detail)
 
@@ -188,3 +200,15 @@ class PasswordReuseException(AppException):
     status_code = 400
     error_code = "password_reuse"
     message = "New password cannot be the same as the current password."
+
+
+class PayloadTooLargeException(AppException):
+    status_code = 413
+    error_code = "payload_too_large"
+    message = "Request body exceeds the maximum allowed size."
+
+
+class InvalidContentLengthException(AppException):
+    status_code = 400
+    error_code = "bad_request"
+    message = "Invalid Content-Length header."

@@ -9,7 +9,7 @@ transport = ASGITransport(app=app)
 
 async def test():
     async with AsyncClient(transport=transport, base_url="http://testserver", timeout=15) as client:
-        r = await client.post("/api/v1/auth/login", json={"identifier": "admin@amplivo.in", "password": "Admin@123"})
+        r = await client.post("/api/v1/auth/login", json={"identifier": "admin@amplivo.in", "password": "Amplivo!Admin2026"})
         print(f"Login status: {r.status_code}")
         if r.status_code == 200:
             token = r.json()["access_token"]

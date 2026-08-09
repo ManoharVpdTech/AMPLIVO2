@@ -2,8 +2,12 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 
-const token = 'd5c339fc9ede7402a173774d3df5c81d3ddbe175';
-const projectKey = 'johnalexanderkondepoguVPD_AMPLIVO';
+const token = process.env.SONAR_TOKEN;
+if (!token) {
+  console.error('SONAR_TOKEN environment variable is required.');
+  process.exit(1);
+}
+const projectKey = process.env.SONAR_PROJECT_KEY || 'johnalexanderkondepoguVPD_AMPLIVO';
 const ruleMap = new Map();
 let allIssues = [];
 

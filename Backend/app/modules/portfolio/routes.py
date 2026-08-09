@@ -4,8 +4,10 @@ from __future__ import annotations
 import uuid
 
 from fastapi import APIRouter, Depends, status
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies.auth import get_current_user
+from app.dependencies.db import get_db
 from app.dependencies.rbac import require_roles
 from app.models.user import User
 from app.modules.portfolio.dependencies import get_portfolio_service
@@ -27,15 +29,20 @@ async def get_portfolio_item(id: uuid.UUID, service: PortfolioItemService = Depe
 
 
 @router.post("", response_model=PortfolioItemRead, status_code=status.HTTP_201_CREATED)
-async def create_portfolio_item(data: PortfolioItemCreate, service: PortfolioItemService = Depends(get_portfolio_service), _: User = Depends(get_current_user), _role: str = Depends(require_roles("marketing", "employee"))):
-    return await service.create(data)
+async def create_portfolio_item(data: PortfolioItemCreate, db: AsyncSession = Depends(get_db), service: PortfolioItemService = Depends(get_portfolio_service), _: User = Depends(get_current_user), _role: str = Depends(require_roles("marketing", "employee"))):
+    result = await service.create(data)
+    await db.commit()
+    return result
 
 
 @router.put("/{id}", response_model=PortfolioItemRead)
-async def update_portfolio_item(id: uuid.UUID, data: PortfolioItemUpdate, service: PortfolioItemService = Depends(get_portfolio_service), _: User = Depends(get_current_user), _role: str = Depends(require_roles("marketing", "employee"))):
-    return await service.update(id, data)
+async def update_portfolio_item(id: uuid.UUID, data: PortfolioItemUpdate, db: AsyncSession = Depends(get_db), service: PortfolioItemService = Depends(get_portfolio_service), _: User = Depends(get_current_user), _role: str = Depends(require_roles("marketing", "employee"))):
+    result = await service.update(id, data)
+    await db.commit()
+    return result
 
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_portfolio_item(id: uuid.UUID, service: PortfolioItemService = Depends(get_portfolio_service), _: User = Depends(get_current_user), _role: str = Depends(require_roles("marketing", "employee"))):
+async def delete_portfolio_item(id: uuid.UUID, db: AsyncSession = Depends(get_db), service: PortfolioItemService = Depends(get_portfolio_service), _: User = Depends(get_current_user), _role: str = Depends(require_roles("marketing", "employee"))):
     await service.delete(id)
+    await db.commit()

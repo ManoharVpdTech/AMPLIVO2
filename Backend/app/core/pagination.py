@@ -31,7 +31,7 @@ class PaginationParams:
         # those requests 422s and the page silently renders empty.
         page_size: int = Query(20, ge=1, le=500, description="Items per page"),
         sort_by: str | None = Query(None, description="Column name to sort by"),
-        sort_order: str = Query("desc", regex="^(asc|desc)$", description="Sort direction"),
+        sort_order: str = Query("desc", pattern="^(asc|desc)$", description="Sort direction"),
         search: str | None = Query(None, min_length=1, max_length=200, description="Free-text search term"),
     ) -> None:
         self.page = page

@@ -39,9 +39,15 @@ class TaskRepository(BaseRepository[Task]):
         """Explicit sequence pull instead of relying on the column's
         server_default (migration 0018) being applied implicitly - avoids a
         NOT NULL violation on task_number when the ORM includes an unset
-        attribute as a bound NULL rather than omitting it from the INSERT."""
-        result = await self._db.execute(text("SELECT nextval('tasks_task_number_seq')"))
-        return f"TASK-{result.scalar_one():04d}"
+        attribute as a bound NULL rather than omitting it from the INSERT.
+        Uses Postgres' nextval where the backing database exposes it, and a
+        portable count-based fallback elsewhere (SQLite/dev/testing)."""
+        dialect = self._db.get_bind().dialect.name
+        if dialect == "postgresql":
+            result = await self._db.execute(text("SELECT nextval('tasks_task_number_seq')"))
+            return f"TASK-{result.scalar_one():04d}"
+        current = (await self._db.execute(select(func.count()).select_from(Task))).scalar_one()
+        return f"TASK-{current + 1:04d}"
     async def get_detail(self, task_id: uuid.UUID) -> Task | None:
         stmt = select(Task).options(selectinload(Task.comments), selectinload(Task.attachments)).where(Task.id == task_id)
         result = await self._db.execute(stmt)
