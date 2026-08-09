@@ -28,3 +28,9 @@ class FaqRepository(BaseRepository[Faq]):
         stmt = select(self.model).options(selectinload(self.model.category)).where(self.model.id == id)
         result = await self._db.execute(stmt)
         return result.scalar_one_or_none()
+
+    async def get_all_detailed(self, offset: int = 0, limit: int = 100) -> list[Faq]:
+        from sqlalchemy import Sequence
+        stmt = select(self.model).options(selectinload(self.model.category)).offset(offset).limit(limit)
+        result = await self._db.execute(stmt)
+        return list(result.scalars().all())

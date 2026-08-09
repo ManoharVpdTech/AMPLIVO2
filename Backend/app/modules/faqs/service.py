@@ -25,7 +25,7 @@ class FaqService:
         return await self._cat_repo.create_from_dict(data.model_dump())
 
     async def list_all(self, skip: int = 0, limit: int = 100) -> list[Faq]:
-        return await self._repo.get_all(offset=skip, limit=limit)
+        return await self._repo.get_all_detailed(offset=skip, limit=limit)
 
     async def get(self, id: uuid.UUID) -> Faq:
         obj = await self._repo.get_detail(id)
@@ -34,7 +34,8 @@ class FaqService:
         return obj
 
     async def create(self, data: FaqCreate) -> Faq:
-        return await self._repo.create_from_dict(data.model_dump())
+        obj = await self._repo.create_from_dict(data.model_dump())
+        return await self._repo.get_detail(obj.id)
 
     async def update(self, id: uuid.UUID, data: FaqUpdate) -> Faq:
         obj = await self._repo.get_by_id(id)
