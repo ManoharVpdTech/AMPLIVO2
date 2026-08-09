@@ -9,6 +9,12 @@
 
 **Method:** static review, automated dependency audits (pip-audit + npm audit), live black-box probes, full backend pytest suite, Playwright e2e, Lighthouse. Strix automated scan **blocked by infrastructure** (managed API 500 on all writes; local CLI needs Docker + LLM key) — the assessment below is the delivered pentest, fully manual + tooled (see STRIX-PENTEST-RESULTS.md).
 
+> **Update (2026-08-09):** the code-level remediation described below was
+> completed and re-verified — see `REMEDIATION-STATUS.md`, `SECURITY-TEST-RESULTS.md`
+> (216 tests green), `GIT-SECRET-HISTORY-REPORT.md` (history purge pends operator),
+> `OBSERVABILITY-SETUP.md` (Sentry + log forwarder), and the completed/pending
+> tally in `COMPLIANCE-STATUS.md`. Only the listed owner-only manual steps remain.
+
 ## Result Summary
 
 | OWASP 2021 | Control | Tested | Verdict | Evidence |

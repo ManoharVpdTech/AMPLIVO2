@@ -32,3 +32,6 @@ orjson==3.10.15
 
 # Prometheus metrics (A09: /metrics endpoint + request instrumentation)
 prometheus-fastapi-instrumentator==7.1.0
+
+# Error tracking (env-gated: only active when SENTRY_DSN is set)
+sentry-sdk[fastapi]==2.24.1

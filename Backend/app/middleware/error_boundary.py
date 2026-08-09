@@ -45,6 +45,10 @@ class UnhandledErrorMiddleware:
                 scope.get("method"),
                 scope.get("path"),
             )
+            # Env-gated error tracking: only sends when SENTRY_DSN is configured.
+            from app.core.sentry import capture_exception
+
+            capture_exception()
             if started:
                 raise
             response = JSONResponse(

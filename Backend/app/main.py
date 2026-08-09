@@ -40,6 +40,27 @@ async def lifespan(app: FastAPI):
     # ── Structured logging ────────────────────────────────────────────────
     setup_logging(level=settings.LOG_LEVEL)
 
+    # ── Centralized logging: remote forwarder (env-gated) ─────────────────
+    # Inert unless LOG_FORWARD_URL is set (see app/core/log_forwarder.py).
+    from app.core.log_forwarder import setup_log_forwarder
+
+    forwarder = setup_log_forwarder(
+        url=settings.LOG_FORWARD_URL,
+        token=settings.LOG_FORWARD_TOKEN,
+        max_batch_bytes=settings.LOG_FORWARD_MAX_BATCH_BYTES,
+        flush_interval_seconds=settings.LOG_FORWARD_FLUSH_INTERVAL_SECONDS,
+    )
+    if forwarder is not None:
+        logger.info(
+            "Log forwarder enabled",
+            extra={"forward_url": settings.LOG_FORWARD_URL},
+        )
+
+    # ── Error tracking (Sentry, env-gated) ────────────────────────────────
+    from app.core.sentry import init_sentry
+
+    init_sentry()
+
     # ── Database connectivity ─────────────────────────────────────────────
     is_healthy, latency_ms = await check_database_connection()
     if is_healthy:

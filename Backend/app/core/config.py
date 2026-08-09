@@ -67,6 +67,15 @@ class Settings(BaseSettings):
     MAX_FAILED_LOGIN_ATTEMPTS: int = 5
     ACCOUNT_LOCK_MINUTES: int = 15
 
+    # ── Client-IP / proxy trust ─────────────────────────────────────────────
+    # Comma-separated CIDRs/addresses of reverse proxies directly in front of
+    # this app. The value of X-Forwarded-For is only honored when the direct
+    # peer is one of these, otherwise the header is ignored (prevents a public
+    # client from self-spoofing its IP to dodge rate limiting / audit logging).
+    # The default trusts loopback + private ranges so local dev, Docker, and
+    # Render's internal load balancer keep working out of the box.
+    TRUSTED_PROXIES: str = "127.0.0.1,::1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,fc00::/7,fe80::/10"
+
     RATE_LIMIT_LOGIN_PER_MINUTE: int = 5
     RATE_LIMIT_REGISTER_PER_MINUTE: int = 3
     RATE_LIMIT_REFRESH_PER_MINUTE: int = 10
@@ -119,6 +128,29 @@ class Settings(BaseSettings):
     # When "json", outputs structured JSON log lines; "text" uses the standard
     # Python format (useful for local development).
     LOG_FORMAT: str = "json"
+
+    # ── Error tracking (Sentry) ────────────────────────────────────────────────
+    # Optional and inert by default. Set SENTRY_DSN in the environment to
+    # enable error/performance capture; without it no SDK call is made and no
+    # network traffic leaves the process. SENTRY_TRACES_SAMPLE_RATE controls the
+    # fraction of transactions sent (float 0.0-1.0; keep low in production).
+    SENTRY_DSN: str | None = None
+    SENTRY_TRACES_SAMPLE_RATE: float = 0.1
+    # Environment "tag" sent to Sentry; defaults to ENVIRONMENT when unset.
+    SENTRY_ENVIRONMENT: str | None = None
+
+    # ── Centralized logging (remote log forwarder) ─────────────────────────
+    # When LOG_FORWARD_URL is set, the app buffers structured log records and
+    # ships them to the target (e.g. Render's log drain endpoint or any
+    # webhook/ingest URL) in batches over HTTP. Fully inert when unset.
+    LOG_FORWARD_URL: str | None = None
+    # Optional bearer token for the forwarder target (never logged).
+    LOG_FORWARD_TOKEN: str | None = None
+    # Max batch payload size in characters before a flush is forced.
+    LOG_FORWARD_MAX_BATCH_BYTES: int = 100_000
+    # How often (seconds) buffered records are flushed when below the size
+    # threshold. 0 disables time-based flush (size-only).
+    LOG_FORWARD_FLUSH_INTERVAL_SECONDS: float = 10.0
 
     # ── Performance ───────────────────────────────────────────────────────────
     # Log requests that take longer than this threshold (milliseconds) at INFO

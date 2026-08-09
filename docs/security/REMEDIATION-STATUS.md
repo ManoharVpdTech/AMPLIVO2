@@ -1,7 +1,7 @@
 # Security Remediation Status
 
 **Date:** 2026-08-09
-**Scope:** Full remediation pass triggered by the CRIT/MED findings from `STRIX-PENTEST-RESULTS.md`, `SECRETS-LEAK-REPORT.md`, and `LOGGING-MONITORING-GAPS.md` (backend + frontend + CI). All code-level items are done and verified; a short list of owner-only manual items remains below.
+**Scope:** Full remediation pass triggered by the CRIT/MED findings from `STRIX-PENTEST-RESULTS.md`, `SECRETS-LEAK-REPORT.md`, and `LOGGING-MONITORING-GAPS.md` (backend + frontend + CI). All code-level items are done and verified; a short list of owner-only manual items remains below. For the completed/pending tally per requirement, see `COMPLIANCE-STATUS.md`.
 
 ## Fixed & Verified (code)
 
@@ -14,7 +14,28 @@
 | **MC-1** no metrics/docs exposure/retention control | `prometheus-fastapi-instrumentator 7.1.0` exports `/metrics` (excludes `/health`, `/health/ready`, `/`); docs/openapi pinned to non-production env only (constructor-gated); `_purge_old_audit_logs()` retention task (`AUDIT_LOG_RETENTION_DAYS=90`) in lifespan | `/api/v1/docs` dev-only test passes; suite green |
 | Dependency CVEs (`npm audit` 6 high) | `npm audit fix` → **0 vulnerabilities**; backend pins bumped to non-yanked versions (fastapi 0.115.12, uvicorn 0.34.2, sqlalchemy 2.0.36, pydantic 2.10.4, pyjwt 2.10.1, etc.) | venv imports verified |
 
-**Regression suite:** `Backend` `python -m pytest -q` → **194 passed, 0 failed** (includes 5 new upload-allowlist tests and the dev-docs route test).
+**Regression suite:** `Backend` `python -m pytest -q` → **216 passed, 0 failed** (the 194 original tests plus 22 new security-regression tests below).
+
+## Regression suite (this pass)
+
+`Backend` `python -m pytest -q` → **216 passed, 0 failed** — 194 pre-existing
+tests plus **22 new security-regression tests** in `app/tests/security/`
+(SQLi, stored/reflected XSS, auth-bypass token forgery/expiry, IDOR/RBAC on
+activity-logs, sensitive-data-in-responses, prod fail-closed boot, Sentry
+scrubber).
+
+## Second-pass additions (2026-08-09)
+
+| Item | Status |
+|---|---|
+| Live Google Maps key in Lighthouse JSONs | untracked (`git rm --cached`), `/lighthouse-*.json` gitignored, on-disk sanitized (0 live tokens) |
+| CI secret guard replaced by SHA-256 fingerprint | `scripts/secret-digest-guard.py` — plaintext never stored; local green, positive control fires |
+| Backend Sentry + unhandled-500 capture | `sentry-sdk[fastapi]==2.24.1`; env-gated; `before_send` redacts auth headers/cookies/PII |
+| Log forwarding (central collector hook) | `app/core/log_forwarder.py` batched HTTP; off unless `LOG_FORWARD_URL` |
+| Frontend Sentry (server/edge/browser/global-error) | `@sentry/nextjs 10.69.0`; `tsc` clean; `next build` OK |
+| Client-IP proxy-trust hardening | `X-Forwarded-For` honored only from `TRUSTED_PROXIES` peers |
+| Frontend XSS guard | ESLint rule bans `dangerouslySetInnerHTML` except `<style>`; verified firing |
+| Docs | `OBSERVABILITY-SETUP.md`, `SECRET-MANAGEMENT.md`, `SECURITY-TEST-RESULTS.md`, `PRODUCTION-READINESS.md`, `GIT-SECRET-HISTORY-REPORT.md` |
 
 ## Owner Manual Items (not code — need your action)
 
@@ -23,3 +44,8 @@
 3. **Delete the live probe file** on Render: `/uploads/8f11f67e7e5c444483d8dfd436c48920.html`.
 4. **Deploy** the patched `main.py`/`routes.py`/`requirements.txt` + frontend `vercel.json`/`authStore.ts`; set Render env secrets in the dashboard.
 5. **Log sink / alerting** from `LOGGING-MONITORING-GAPS.md` requires third-party keys (e.g. external SIEM) — not implementable as code here.
+
+> Second-pass owner items: rotate/restrict the Google Maps key (see
+> `GIT-SECRET-HISTORY-REPORT.md` §2); add `SENTRY_DSN` (Render) +
+> `NEXT_PUBLIC_SENTRY_DSN` (Vercel) + `LOG_FORWARD_URL` once a collector exists;
+> re-run `pip-audit`/`npm audit` in CI every release.

@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
+    "@sentry/nextjs": "^10.69.0",
     "axios": "^1.18.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.43.0",

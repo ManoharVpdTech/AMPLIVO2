@@ -29,6 +29,9 @@ storage-state/
 .DS_Store
 *.pem
 
+# contains a live Google Maps API key — never commit (use git rm --cached + keep local)
+/lighthouse-*.json
+
 # debug
 npm-debug.log*
 yarn-debug.log*

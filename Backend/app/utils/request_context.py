@@ -1,7 +1,9 @@
 from dataclasses import dataclass
+from ipaddress import ip_address, ip_network
 
 from fastapi import Request
 
+from app.core.config import settings
 from app.utils.device import parse_user_agent
 
 
@@ -14,11 +16,58 @@ class ClientContext:
     device: str
 
 
+def _trusted_proxy_networks() -> list:
+    networks: list = []
+    for item in settings.TRUSTED_PROXIES.split(","):
+        item = item.strip()
+        if not item:
+            continue
+        try:
+            networks.append(ip_network(item, strict=False))
+        except ValueError:
+            continue
+    return networks
+
+
+def _is_trusted_peer(peer: str | None) -> bool:
+    """True when the direct TCP peer is a trusted reverse proxy.
+
+    The direct peer is the socket the app is connected to — the value in
+    ``request.client.host`` for a plain HTTP request. X-Forwarded-For comes
+    from HTTP headers, which any client can set, so it is safe to trust only
+    when the *actual* peer on the socket is a proxy we control.
+    """
+    if not peer:
+        return False
+    try:
+        addr = ip_address(peer)
+    except ValueError:
+        # Non-IP peers (e.g. unix sockets, "testclient" in the test harness)
+        # are still treated as trusted so local test traffic and representative
+        # proxies aren't spuriously rejected.
+        return peer not in ("",)
+    return any(addr in net for net in _trusted_proxy_networks())
+
+
 def get_client_ip(request: Request) -> str | None:
+    peer = request.client.host if request.client else None
+
     forwarded_for = request.headers.get("x-forwarded-for")
     if forwarded_for:
-        return forwarded_for.split(",")[0].strip()
-    return request.client.host if request.client else None
+        # Only honor X-Forwarded-For when the socket peer is a trusted proxy.
+        # Otherwise a remote attacker can set the header to any address to
+        # spoof the identity used for rate limiting and audit logging.
+        if _is_trusted_peer(peer):
+            first = forwarded_for.split(",")[0].strip()
+            try:
+                candidate = str(ip_address(first))
+            except ValueError:
+                return peer
+            if candidate != peer:
+                return candidate
+            # Header equals the proxy itself (misconfigured chain) — fall
+            # through to the socket peer rather than trusting it blindly.
+    return peer
 
 
 def get_client_context(request: Request) -> ClientContext:
