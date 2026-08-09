@@ -5,6 +5,7 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
+from sqlalchemy.exc import IntegrityError
 
 from app.core.exceptions import AppException
 
@@ -88,6 +89,19 @@ def register_exception_handlers(app: FastAPI) -> None:
         content: dict = {"error_code": code, "message": message}
         _enrich(content, request)
         return JSONResponse(status_code=exc.status_code, content=content)
+
+    @app.exception_handler(IntegrityError)
+    async def integrity_error_handler(request: Request, exc: IntegrityError) -> JSONResponse:
+        logger.warning("Database IntegrityError: %s", exc)
+        content: dict = {
+            "error_code": "validation_error",
+            "message": "A database integrity constraint was violated (e.g., invalid reference or duplicate entry).",
+        }
+        _enrich(content, request)
+        return JSONResponse(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            content=content,
+        )
 
     @app.exception_handler(Exception)
     async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:

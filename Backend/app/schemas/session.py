@@ -18,7 +18,7 @@ class SessionRead(BaseModel):
     is_active: bool = True
     is_revoked: bool = False
     is_expired: bool = False
-    expires_at: datetime | None = None
-    last_activity: datetime | None = None
-    created_at: datetime
     is_current: bool = False
+    last_activity: datetime | None = None
+    created_at: datetime | None = None
+    expires_at: datetime | None = None

@@ -50,6 +50,8 @@ services:
         value: 300
       - key: ENVIRONMENT
         value: production
+      - key: SEED_DEMO_DATA
+        value: "false"
 
   # ── Next.js Frontend ───────────────────────────────────────────────────────
   - type: web

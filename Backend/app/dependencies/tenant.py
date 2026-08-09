@@ -37,8 +37,11 @@ async def get_current_client_id(
     role_slug: str | None = Depends(get_current_user_role_slug),
 ) -> uuid.UUID | None:
     """None for staff (unrestricted). The caller's own clients.id for a client user."""
-    if role_slug != CLIENT_ROLE_SLUG:
+    from app.dependencies.rbac import STAFF_ROLE_SLUGS, ALWAYS_ALLOWED_SLUGS
+    if role_slug in STAFF_ROLE_SLUGS or role_slug in ALWAYS_ALLOWED_SLUGS:
         return None
+    if role_slug != CLIENT_ROLE_SLUG:
+        raise ForbiddenException("You do not have permission to access client resources.")
     if current_user.client_id is None:
         raise ForbiddenException("This account is not linked to a client company yet. Contact support.")
     return current_user.client_id

@@ -84,6 +84,11 @@ class InvoiceService:
         """Computes the 25% advance split and invoice number server-side -
         the frontend previously did this math client-side with an
         in-memory counter that reset on page reload (salesStore.ts)."""
+        from app.core.exceptions import DuplicateException
+        existing = await self.get_advance_for_lead(lead_id)
+        if existing is not None:
+            raise DuplicateException("Advance invoice", "lead_id")
+
         return await self._create_deal_invoice(
             invoice_type=finance_constants.INVOICE_TYPE_ADVANCE, percentage=0.25, number_prefix="ADV",
             lead_id=lead_id, proposal_id=proposal_id, project_id=None, task_submission_id=None,
@@ -346,6 +351,9 @@ class PaymentService:
 
     async def finance_verify(self, payment_id: uuid.UUID, *, actor_id: uuid.UUID | None) -> Payment:
         payment = await self.get_payment(payment_id)
+        if payment.status != finance_constants.PAYMENT_STATUS_SUBMITTED:
+            from app.core.exceptions import BadRequestException
+            raise BadRequestException("Payment is not in a submitted state and cannot be verified.")
         payment.status = finance_constants.PAYMENT_STATUS_FINANCE_VERIFIED
         payment.finance_verified_by = actor_id
         payment.finance_verified_at = utc_now()

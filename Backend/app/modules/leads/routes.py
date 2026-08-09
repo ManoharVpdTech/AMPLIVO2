@@ -1,6 +1,7 @@
 """API routes for Lead Management."""
 from __future__ import annotations
 import uuid
+from typing import Literal
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.pagination import PaginatedResponse, PaginationParams
@@ -61,6 +62,7 @@ async def list_leads(
     svc: LeadService = Depends(get_lead_service),
     _: User = Depends(get_current_user),
     scoped_client_id: uuid.UUID | None = Depends(get_current_client_id),
+    _role: str = Depends(require_roles("sales")),
 ):
     effective_client_id = scoped_client_id if scoped_client_id is not None else client_id
     items, total = await svc.list_leads(
@@ -86,20 +88,22 @@ async def get_dashboard_stats(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
     role_slug: str | None = Depends(get_current_user_role_slug),
+    _role: str = Depends(require_roles("sales")),
 ):
     return await SalesAnalyticsService(db).get_dashboard_stats(current_user_id=current_user.id, role_slug=role_slug)
 
 @router.get("/leads/sales-reports", summary="Sales reports (conversion/revenue/won-vs-lost/etc.)")
 async def get_sales_reports(
-    report_type: str = Query(..., alias="type"),
+    report_type: Literal["conversion", "won_vs_lost", "revenue", "monthly_growth", "campaign_performance", "performance", "team_performance"] = Query(..., alias="type"),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
     role_slug: str | None = Depends(get_current_user_role_slug),
+    _role: str = Depends(require_roles("sales")),
 ):
     return await SalesAnalyticsService(db).get_report(report_type, current_user_id=current_user.id, role_slug=role_slug)
 
 @router.get("/leads/{lead_id}", response_model=LeadRead, summary="Get lead")
-async def get_lead(lead_id: uuid.UUID, svc: LeadService = Depends(get_lead_service), _: User = Depends(get_current_user), scoped_client_id: uuid.UUID | None = Depends(get_current_client_id)):
+async def get_lead(lead_id: uuid.UUID, svc: LeadService = Depends(get_lead_service), _: User = Depends(get_current_user), scoped_client_id: uuid.UUID | None = Depends(get_current_client_id), _role: str = Depends(require_roles("sales"))):
     return LeadRead.model_validate(await svc.get_lead(lead_id, scoped_client_id=scoped_client_id))
 
 @router.put("/leads/{lead_id}", response_model=LeadRead, summary="Update lead")
@@ -123,7 +127,7 @@ async def mark_lead_lost(lead_id: uuid.UUID, payload: LeadMarkLostRequest, db: A
 
 # ── Proposals on a Lead (pre-conversion - see migration 0020) ──
 @router.get("/leads/{lead_id}/proposals", response_model=list[ProposalRead], summary="List proposals for a lead")
-async def list_lead_proposals(lead_id: uuid.UUID, svc: ProposalService = Depends(get_proposal_service), _: User = Depends(get_current_user)):
+async def list_lead_proposals(lead_id: uuid.UUID, svc: ProposalService = Depends(get_proposal_service), _: User = Depends(get_current_user), _role: str = Depends(require_roles("sales"))):
     return [ProposalRead.model_validate(p) for p in await svc.list_proposals_for_lead(lead_id)]
 
 @router.post("/leads/{lead_id}/proposals", response_model=ProposalRead, status_code=status.HTTP_201_CREATED, summary="Create proposal for a lead")
@@ -133,7 +137,7 @@ async def create_lead_proposal(lead_id: uuid.UUID, payload: ProposalCreate, db: 
 
 # ── Lead Activities ──
 @router.get("/leads/{lead_id}/activities", response_model=list[LeadActivityRead], summary="List lead activities")
-async def list_activities(lead_id: uuid.UUID, svc: LeadActivityService = Depends(get_lead_activity_service), _: User = Depends(get_current_user)):
+async def list_activities(lead_id: uuid.UUID, svc: LeadActivityService = Depends(get_lead_activity_service), _: User = Depends(get_current_user), _role: str = Depends(require_roles("sales"))):
     return [LeadActivityRead.model_validate(a) for a in await svc.list_activities(lead_id)]
 
 @router.post("/leads/{lead_id}/activities", response_model=LeadActivityRead, status_code=status.HTTP_201_CREATED, summary="Add lead activity")
@@ -143,7 +147,7 @@ async def create_activity(lead_id: uuid.UUID, payload: LeadActivityCreate, db: A
 
 # ── Lead Followups ──
 @router.get("/leads/{lead_id}/followups", response_model=list[LeadFollowupRead], summary="List lead followups")
-async def list_followups(lead_id: uuid.UUID, svc: LeadFollowupService = Depends(get_lead_followup_service), _: User = Depends(get_current_user)):
+async def list_followups(lead_id: uuid.UUID, svc: LeadFollowupService = Depends(get_lead_followup_service), _: User = Depends(get_current_user), _role: str = Depends(require_roles("sales"))):
     return [LeadFollowupRead.model_validate(f) for f in await svc.list_followups(lead_id)]
 
 @router.post("/leads/{lead_id}/followups", response_model=LeadFollowupRead, status_code=status.HTTP_201_CREATED, summary="Add lead followup")

@@ -118,6 +118,9 @@ async def _purge_old_audit_logs() -> None:
 
 async def _seed_demo_background() -> None:
     """Idempotent demo data seeding, run in the background after startup."""
+    if not settings.SEED_DEMO_DATA or settings.ENVIRONMENT.lower() == "production":
+        logger.info("Demo data seeding skipped (disabled or production mode).")
+        return
     try:
         from app.scripts.seed_demo_data import seed_demo_data
 
@@ -128,6 +131,8 @@ async def _seed_demo_background() -> None:
     except Exception:
         logger.exception("Demo data seeding failed — continuing without it.")
 
+
+is_production = settings.ENVIRONMENT.lower() == "production"
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -142,21 +147,9 @@ app = FastAPI(
     # MED-1: interactive API docs (Swagger/ReDoc + the raw OpenAPI JSON) are
     # a high-value discovery surface in production. They enumerate every
     # route, schema, and accepted field. Enabled only outside "production".
-    openapi_url=(
-        None
-        if settings.ENVIRONMENT == "production"
-        else f"{settings.API_V1_PREFIX}/openapi.json"
-    ),
-    docs_url=(
-        None
-        if settings.ENVIRONMENT == "production"
-        else f"{settings.API_V1_PREFIX}/docs"
-    ),
-    redoc_url=(
-        None
-        if settings.ENVIRONMENT == "production"
-        else f"{settings.API_V1_PREFIX}/redoc"
-    ),
+    openapi_url=None if is_production else f"{settings.API_V1_PREFIX}/openapi.json",
+    docs_url=None if is_production else f"{settings.API_V1_PREFIX}/docs",
+    redoc_url=None if is_production else f"{settings.API_V1_PREFIX}/redoc",
 )
 
 # Middleware is added innermost-first: Starlette wraps the stack so the LAST
@@ -173,6 +166,8 @@ app = FastAPI(
 # RequestID must run early so every downstream component sees the IDs.
 # CacheHeaders runs after Compression so ETags reflect the compressed body.
 # Everything else follows the existing ordering rationale.
+from app.middleware.body_limit import ContentSizeLimitMiddleware
+
 app.add_middleware(AuthenticationMiddleware)
 app.add_middleware(ActivityMiddleware)
 app.add_middleware(SessionMiddleware)
@@ -195,6 +190,7 @@ app.add_middleware(
     CompressionMiddleware,
     minimum_size=settings.COMPRESSION_MIN_SIZE,
 )
+app.add_middleware(ContentSizeLimitMiddleware)
 
 register_exception_handlers(app)
 
@@ -248,7 +244,14 @@ app.include_router(api_router, prefix=settings.API_V1_PREFIX)
 async def root():
     if settings.ENVIRONMENT == "production":
         return JSONResponse(
-            {"service": "Amplivo API", "docs": "disabled in production"},
+            {
+                "service": "Amplivo API",
+                "name": settings.PROJECT_NAME,
+                "status": "healthy",
+                "environment": settings.ENVIRONMENT,
+                "version": "2.0.0",
+                "docs": "disabled in production",
+            },
             status_code=200,
         )
     return RedirectResponse(url=f"{settings.API_V1_PREFIX}/docs")

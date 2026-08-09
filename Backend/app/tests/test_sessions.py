@@ -255,3 +255,89 @@ async def test_session_expires_at_matches_refresh_token_expiry(
 
     assert session.expires_at == refresh_token.expires_at
     assert session.refresh_token_id == refresh_token.id
+
+
+async def test_sessions_and_devices_with_null_metadata(client: AsyncClient, db_session: AsyncSession) -> None:
+    await _register(client)
+    tokens = await _login(client)
+
+    from sqlalchemy import update
+    await db_session.execute(
+        update(UserSession).values(
+            device_name=None,
+            browser=None,
+            operating_system=None,
+            ip_address=None,
+            country=None,
+            city=None
+        )
+    )
+    await db_session.commit()
+
+    response = await client.get("/api/v1/auth/sessions", headers=_auth_headers(tokens))
+    assert response.status_code == 200
+    sessions = response.json()
+    assert len(sessions) == 1
+    assert sessions[0]["device_name"] is None
+    assert sessions[0]["browser"] is None
+    assert sessions[0]["operating_system"] is None
+    assert sessions[0]["ip_address"] is None
+    assert sessions[0]["country"] is None
+    assert sessions[0]["city"] is None
+
+    response_devices = await client.get("/api/v1/auth/devices", headers=_auth_headers(tokens))
+    assert response_devices.status_code == 200
+    devices = response_devices.json()
+    assert len(devices) == 1
+    assert devices[0]["device_name"] is None
+    assert devices[0]["browser"] is None
+
+
+async def test_user_with_zero_sessions(client: AsyncClient, db_session: AsyncSession) -> None:
+    await _register(client)
+    
+    from app.models.user import User
+    result = await db_session.execute(select(User).where(User.email == PAYLOAD["email"]))
+    user = result.scalar_one()
+
+    from app.utils.jwt import create_access_token
+    token = create_access_token(user_id=user.id, session_id=None)
+    tokens = {"access_token": token}
+
+    response = await client.get("/api/v1/auth/sessions", headers=_auth_headers(tokens))
+    assert response.status_code == 200
+    assert response.json() == []
+
+
+async def test_sessions_with_invalid_token(client: AsyncClient) -> None:
+    response = await client.get("/api/v1/auth/sessions", headers={"Authorization": "Bearer invalid_token_here"})
+    assert response.status_code in (401, 403)
+
+
+async def test_authenticated_user_complete_session_metadata(client: AsyncClient, db_session: AsyncSession) -> None:
+    await _register(client)
+    tokens = await _login(client, user_agent=CHROME_WINDOWS_UA)
+
+    from sqlalchemy import update
+    await db_session.execute(
+        update(UserSession).values(
+            device_name="My Test Device",
+            browser="Chrome",
+            operating_system="Windows",
+            ip_address="192.168.1.1",
+            country="United States",
+            city="New York"
+        )
+    )
+    await db_session.commit()
+
+    response = await client.get("/api/v1/auth/sessions", headers=_auth_headers(tokens))
+    assert response.status_code == 200
+    sessions = response.json()
+    assert len(sessions) == 1
+    assert sessions[0]["device_name"] == "My Test Device"
+    assert sessions[0]["browser"] == "Chrome"
+    assert sessions[0]["operating_system"] == "Windows"
+    assert sessions[0]["ip_address"] == "192.168.1.1"
+    assert sessions[0]["country"] == "United States"
+    assert sessions[0]["city"] == "New York"

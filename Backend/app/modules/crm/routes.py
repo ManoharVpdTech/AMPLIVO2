@@ -42,7 +42,13 @@ async def list_clients(
     is_active: bool | None = Query(None),
     svc: ClientService = Depends(get_client_service),
     _: User = Depends(get_current_user),
+    scoped_client_id: uuid.UUID | None = Depends(get_current_client_id),
 ):
+    if scoped_client_id:
+        return PaginatedResponse[ClientRead].create(
+            items=[ClientRead.model_validate(await svc.get_client(scoped_client_id))],
+            total=1, page=1, page_size=params.page_size,
+        )
     items, total = await svc.list_clients(
         search=params.search, status=client_status, client_type=client_type,
         assigned_to=assigned_to, branch_id=branch_id, is_active=is_active,
@@ -61,9 +67,14 @@ async def create_client(
     current_user: User = Depends(get_current_user),
     _admin: str = Depends(require_roles("sales")),
 ):
-    client = await svc.create_client(payload.model_dump(), created_by=current_user.id)
-    await db.commit()
-    return ClientRead.model_validate(client)
+    import sqlalchemy
+    try:
+        client = await svc.create_client(payload.model_dump(), created_by=current_user.id)
+        await db.commit()
+        return ClientRead.model_validate(client)
+    except sqlalchemy.exc.IntegrityError:
+        await db.rollback()
+        raise BadRequestException("Invalid foreign key reference (assigned_to or branch_id).")
 
 @router.get("/me", response_model=ClientDetailRead, summary="Get my own company (client-portal user)")
 async def get_my_client(svc: ClientService = Depends(get_client_service), _: User = Depends(get_current_user), scoped_client_id: uuid.UUID | None = Depends(get_current_client_id)):
@@ -80,9 +91,14 @@ async def update_client(client_id: uuid.UUID, payload: ClientUpdate, db: AsyncSe
                         svc: ClientService = Depends(get_client_service), current_user: User = Depends(get_current_user),
                         scoped_client_id: uuid.UUID | None = Depends(get_current_client_id),
                         _admin: str = Depends(require_roles("sales"))):
-    client = await svc.update_client(client_id, payload.model_dump(exclude_unset=True), scoped_client_id=scoped_client_id, actor_id=current_user.id)
-    await db.commit()
-    return ClientRead.model_validate(client)
+    import sqlalchemy
+    try:
+        client = await svc.update_client(client_id, payload.model_dump(exclude_unset=True), scoped_client_id=scoped_client_id, actor_id=current_user.id)
+        await db.commit()
+        return ClientRead.model_validate(client)
+    except sqlalchemy.exc.IntegrityError:
+        await db.rollback()
+        raise BadRequestException("Invalid foreign key reference (assigned_to or branch_id).")
 
 @router.delete("/{client_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Delete client")
 async def delete_client(client_id: uuid.UUID, db: AsyncSession = Depends(get_db),
@@ -94,7 +110,8 @@ async def delete_client(client_id: uuid.UUID, db: AsyncSession = Depends(get_db)
 # ── Client Contacts ────────────────────────────────────────────────────
 
 @router.get("/{client_id}/contacts", response_model=list[ClientContactRead], summary="List client contacts")
-async def list_contacts(client_id: uuid.UUID, svc: ClientContactService = Depends(get_client_contact_service), _: User = Depends(get_current_user)):
+async def list_contacts(client_id: uuid.UUID, svc: ClientContactService = Depends(get_client_contact_service), _: User = Depends(get_current_user), client_svc: ClientService = Depends(get_client_service), scoped_client_id: uuid.UUID | None = Depends(get_current_client_id)):
+    await client_svc.get_client(client_id, scoped_client_id=scoped_client_id)
     return [ClientContactRead.model_validate(c) for c in await svc.list_contacts(client_id)]
 
 @router.post("/{client_id}/contacts", response_model=ClientContactRead, status_code=status.HTTP_201_CREATED, summary="Add contact")
@@ -125,7 +142,8 @@ async def delete_contact(contact_id: uuid.UUID, db: AsyncSession = Depends(get_d
 # ── Client Addresses ───────────────────────────────────────────────────
 
 @router.get("/{client_id}/addresses", response_model=list[ClientAddressRead], summary="List client addresses")
-async def list_addresses(client_id: uuid.UUID, svc: ClientAddressService = Depends(get_client_address_service), _: User = Depends(get_current_user)):
+async def list_addresses(client_id: uuid.UUID, svc: ClientAddressService = Depends(get_client_address_service), _: User = Depends(get_current_user), client_svc: ClientService = Depends(get_client_service), scoped_client_id: uuid.UUID | None = Depends(get_current_client_id)):
+    await client_svc.get_client(client_id, scoped_client_id=scoped_client_id)
     return [ClientAddressRead.model_validate(a) for a in await svc.list_addresses(client_id)]
 
 @router.post("/{client_id}/addresses", response_model=ClientAddressRead, status_code=status.HTTP_201_CREATED, summary="Add address")
@@ -156,7 +174,8 @@ async def delete_address(address_id: uuid.UUID, db: AsyncSession = Depends(get_d
 # ── Client Documents ───────────────────────────────────────────────────
 
 @router.get("/{client_id}/documents", response_model=list[ClientDocumentRead], summary="List client documents")
-async def list_documents(client_id: uuid.UUID, svc: ClientDocumentService = Depends(get_client_document_service), _: User = Depends(get_current_user)):
+async def list_documents(client_id: uuid.UUID, svc: ClientDocumentService = Depends(get_client_document_service), _: User = Depends(get_current_user), client_svc: ClientService = Depends(get_client_service), scoped_client_id: uuid.UUID | None = Depends(get_current_client_id)):
+    await client_svc.get_client(client_id, scoped_client_id=scoped_client_id)
     return [ClientDocumentRead.model_validate(d) for d in await svc.list_documents(client_id)]
 
 @router.post("/{client_id}/documents", response_model=ClientDocumentRead, status_code=status.HTTP_201_CREATED, summary="Upload document")
@@ -179,7 +198,8 @@ async def delete_document(document_id: uuid.UUID, db: AsyncSession = Depends(get
 # ── Client Notes ───────────────────────────────────────────────────────
 
 @router.get("/{client_id}/notes", response_model=list[ClientNoteRead], summary="List client notes")
-async def list_notes(client_id: uuid.UUID, svc: ClientNoteService = Depends(get_client_note_service), _: User = Depends(get_current_user)):
+async def list_notes(client_id: uuid.UUID, svc: ClientNoteService = Depends(get_client_note_service), _: User = Depends(get_current_user), client_svc: ClientService = Depends(get_client_service), scoped_client_id: uuid.UUID | None = Depends(get_current_client_id)):
+    await client_svc.get_client(client_id, scoped_client_id=scoped_client_id)
     return [ClientNoteRead.model_validate(n) for n in await svc.list_notes(client_id)]
 
 @router.post("/{client_id}/notes", response_model=ClientNoteRead, status_code=status.HTTP_201_CREATED, summary="Add note")
@@ -202,7 +222,8 @@ async def delete_note(note_id: uuid.UUID, db: AsyncSession = Depends(get_db),
 # ── Proposals ───────────────────────────────────────────────────────────
 
 @router.get("/{client_id}/proposals", response_model=list[ProposalRead], summary="List client proposals")
-async def list_client_proposals(client_id: uuid.UUID, svc: ProposalService = Depends(get_proposal_service), _: User = Depends(get_current_user)):
+async def list_client_proposals(client_id: uuid.UUID, svc: ProposalService = Depends(get_proposal_service), _: User = Depends(get_current_user), client_svc: ClientService = Depends(get_client_service), scoped_client_id: uuid.UUID | None = Depends(get_current_client_id)):
+    await client_svc.get_client(client_id, scoped_client_id=scoped_client_id)
     items, _total = await svc.list_proposals(client_id=client_id, limit=200)
     return [ProposalRead.model_validate(p) for p in items]
 

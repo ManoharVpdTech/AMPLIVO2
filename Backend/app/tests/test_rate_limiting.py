@@ -159,3 +159,15 @@ async def test_default_api_rate_limit_does_not_apply_outside_api_prefix() -> Non
         # the default rule at all.
         assert (await ac.get("/not-api")).status_code == 200
     reset_rate_limit_state()
+
+
+async def test_check_endpoints_rate_limited(client: AsyncClient) -> None:
+    reset_rate_limit_state()
+    for _ in range(5):
+        response = await client.get("/api/v1/auth/check-username?username=randomuser")
+        assert response.status_code == 200
+
+    limited_response = await client.get("/api/v1/auth/check-username?username=randomuser")
+    assert limited_response.status_code == 429
+    assert limited_response.json()["error_code"] == "rate_limit_exceeded"
+    reset_rate_limit_state()

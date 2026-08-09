@@ -52,7 +52,7 @@ export default function ContactPage() {
     if (!form.name.trim()) errs.name = 'Full name is required';
     if (!form.email.trim()) {
       errs.email = 'Business email is required';
-    } else if (!/^\S+@\S+\.\S+$/.test(form.email.trim())) {
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
       errs.email = 'Please enter a valid email address';
     }
     if (!form.phone.trim()) errs.phone = 'Phone number is required';
@@ -157,63 +157,68 @@ export default function ContactPage() {
                       </div>
                     )}
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label htmlFor="contact-name" className="block text-sm font-medium text-slate-700 mb-1.5">Full Name <span className="text-red-500">*</span></label>
                         <input
-                          id="contact-name"
                           type="text"
+                          id="contact-name"
                           name="name"
                           value={form.name}
                           onChange={handleChange}
                           placeholder="Rajesh Kumar"
                           pattern="[A-Za-z\s]+"
                           title="Only letters and spaces are allowed"
+                          aria-describedby={fieldErrors.name ? "contact-name-error" : undefined}
                           className={`w-full bg-white/50 backdrop-blur-sm border rounded-xl px-4 py-3 text-sm focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#4C1D95]/10 focus:border-[#4C1D95] transition-all ${fieldErrors.name ? 'border-red-300' : 'border-slate-200'}`}
                         />
-                        {fieldErrors.name && <p className="text-red-500 text-xs mt-1">{fieldErrors.name}</p>}
+                        {fieldErrors.name && <p id="contact-name-error" role="alert" className="text-red-500 text-xs mt-1">{fieldErrors.name}</p>}
                       </div>
                       <div>
                         <label htmlFor="contact-company" className="block text-sm font-medium text-slate-700 mb-1.5">Company</label>
                         <input
-                          id="contact-company"
                           type="text"
+                          id="contact-company"
                           name="company"
                           value={form.company}
                           onChange={handleChange}
                           placeholder="Company Name"
+                          aria-describedby={fieldErrors.company ? "contact-company-error" : undefined}
                           className={`w-full bg-white/50 backdrop-blur-sm border rounded-xl px-4 py-3 text-sm focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#4C1D95]/10 focus:border-[#4C1D95] transition-all ${fieldErrors.company ? 'border-red-300' : 'border-slate-200'}`}
                         />
-                        {fieldErrors.company && <p className="text-red-500 text-xs mt-1">{fieldErrors.company}</p>}
+                        {fieldErrors.company && <p id="contact-company-error" role="alert" className="text-red-500 text-xs mt-1">{fieldErrors.company}</p>}
                       </div>
                     </div>
 
                     <div>
                       <label htmlFor="contact-email" className="block text-sm font-medium text-slate-700 mb-1.5">Business Email <span className="text-red-500">*</span></label>
                       <input
-                        id="contact-email"
                         type="email"
+                        id="contact-email"
                         name="email"
                         value={form.email}
                         onChange={handleChange}
                         placeholder="rajesh@company.in"
+                        aria-describedby={fieldErrors.email ? "contact-email-error" : undefined}
                         className={`w-full bg-white/50 backdrop-blur-sm border rounded-xl px-4 py-3 text-sm focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#4C1D95]/10 focus:border-[#4C1D95] transition-all ${fieldErrors.email ? 'border-red-300' : 'border-slate-200'}`}
                       />
-                      {fieldErrors.email && <p className="text-red-500 text-xs mt-1">{fieldErrors.email}</p>}
+                      {fieldErrors.email && <p id="contact-email-error" role="alert" className="text-red-500 text-xs mt-1">{fieldErrors.email}</p>}
                     </div>
 
                     <div>
                       <label htmlFor="contact-phone" className="block text-sm font-medium text-slate-700 mb-1.5">Phone Number <span className="text-red-500">*</span></label>
-                      <PhoneInput
-                        id="contact-phone"
-                        value={form.phone}
-                        onChange={(val) => {
-                          setForm(prev => ({ ...prev, phone: val || '' }));
-                          if (fieldErrors.phone) setFieldErrors((prev) => ({ ...prev, phone: undefined }));
-                        }}
-                        error={!!fieldErrors.phone}
-                      />
-                      {fieldErrors.phone && <p className="text-red-500 text-xs mt-1">{fieldErrors.phone}</p>}
+                      <div aria-describedby={fieldErrors.phone ? "contact-phone-error" : undefined}>
+                        <PhoneInput
+                          id="contact-phone"
+                          value={form.phone}
+                          onChange={(val) => {
+                            setForm(prev => ({ ...prev, phone: val || '' }));
+                            if (fieldErrors.phone) setFieldErrors((prev) => ({ ...prev, phone: undefined }));
+                          }}
+                          error={!!fieldErrors.phone}
+                        />
+                      </div>
+                      {fieldErrors.phone && <p id="contact-phone-error" role="alert" className="text-red-500 text-xs mt-1">{fieldErrors.phone}</p>}
                     </div>
 
                     <div>
@@ -223,6 +228,7 @@ export default function ContactPage() {
                         name="service_interest"
                         value={form.service_interest}
                         onChange={handleChange}
+                        aria-describedby={fieldErrors.service_interest ? "contact-service-error" : undefined}
                         className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#4C1D95]/20 focus:border-[#4C1D95] bg-white ${fieldErrors.service_interest ? 'border-red-300' : 'border-slate-200'}`}
                       >
                         <option value="">Select a service...</option>
@@ -238,7 +244,7 @@ export default function ContactPage() {
                         <option>Video Marketing</option>
                         <option>Full-Service Package</option>
                       </select>
-                      {fieldErrors.service_interest && <p className="text-red-500 text-xs mt-1">{fieldErrors.service_interest}</p>}
+                      {fieldErrors.service_interest && <p id="contact-service-error" role="alert" className="text-red-500 text-xs mt-1">{fieldErrors.service_interest}</p>}
                     </div>
 
                     <div>
@@ -248,6 +254,7 @@ export default function ContactPage() {
                         name="budget_range"
                         value={form.budget_range}
                         onChange={handleChange}
+                        aria-describedby={fieldErrors.budget_range ? "contact-budget-error" : undefined}
                         className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#4C1D95]/20 focus:border-[#4C1D95] bg-white ${fieldErrors.budget_range ? 'border-red-300' : 'border-slate-200'}`}
                       >
                         <option value="">Select budget...</option>
@@ -257,7 +264,7 @@ export default function ContactPage() {
                         <option>₹2,50,000 – ₹5,00,000</option>
                         <option>₹5,00,000+</option>
                       </select>
-                      {fieldErrors.budget_range && <p className="text-red-500 text-xs mt-1">{fieldErrors.budget_range}</p>}
+                      {fieldErrors.budget_range && <p id="contact-budget-error" role="alert" className="text-red-500 text-xs mt-1">{fieldErrors.budget_range}</p>}
                     </div>
 
                     <div>
@@ -269,9 +276,10 @@ export default function ContactPage() {
                         onChange={handleChange}
                         rows={4}
                         placeholder="Tell us about your business and marketing goals..."
+                        aria-describedby={fieldErrors.message ? "contact-message-error" : undefined}
                         className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#4C1D95]/20 focus:border-[#4C1D95] resize-none ${fieldErrors.message ? 'border-red-300' : 'border-slate-200'}`}
                       />
-                      {fieldErrors.message && <p className="text-red-500 text-xs mt-1">{fieldErrors.message}</p>}
+                      {fieldErrors.message && <p id="contact-message-error" role="alert" className="text-red-500 text-xs mt-1">{fieldErrors.message}</p>}
                     </div>
 
                     <button
@@ -334,7 +342,7 @@ export default function ContactPage() {
                 </div>
 
                 {/* Offices */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {offices.map((o) => (
                     <div key={o.city} className={`bg-white rounded-xl p-4 border ${o.primary ? 'border-[#4C1D95]/30' : 'border-slate-200'}`}>
                       <div className="flex items-center gap-2 mb-2">

@@ -45,7 +45,7 @@ export default function AboutPage() {
       <PageHero config={aboutHero} />
 
       {/* Mission & Vision */}
-      <section className="py-10 bg-white">
+      <section className="py-16 md:py-24 bg-white">
         <div className="max-w-6xl mx-auto px-6">
           <div className="grid md:grid-cols-2 gap-12">
             <AnimateOnScroll animation="fade-right">
@@ -75,7 +75,7 @@ export default function AboutPage() {
       </section>
 
       {/* Core Values */}
-      <section className="py-10 bg-[#F9FAFB]">
+      <section className="py-16 md:py-24 bg-[#F9FAFB]">
         <div className="max-w-7xl mx-auto px-6">
           <AnimateOnScroll animation="fade-up">
             <div className="text-center mb-14">
@@ -104,7 +104,7 @@ export default function AboutPage() {
       </section>
 
       {/* Team */}
-      <section id="team" className="py-10 bg-white">
+      <section id="team" className="py-16 md:py-24 bg-white">
         <div className="max-w-7xl mx-auto px-6">
           <AnimateOnScroll animation="fade-up">
             <div className="text-center mb-14">
@@ -141,7 +141,7 @@ export default function AboutPage() {
       </section>
 
       {/* Milestones */}
-      <section className="py-10 bg-[#F9FAFB]">
+      <section className="py-16 md:py-24 bg-[#F9FAFB]">
         <div className="max-w-4xl mx-auto px-6">
           <AnimateOnScroll animation="fade-up">
             <div className="text-center mb-14">
@@ -176,7 +176,7 @@ export default function AboutPage() {
       </section>
 
       {/* Offices */}
-      <section className="py-10 bg-white">
+      <section className="py-16 md:py-24 bg-white">
         <div className="max-w-6xl mx-auto px-6">
           <AnimateOnScroll animation="fade-up">
             <div className="text-center mb-14">

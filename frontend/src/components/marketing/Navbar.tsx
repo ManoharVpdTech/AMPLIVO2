@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Menu, X } from 'lucide-react';
 import { Logo } from '@/components/ui/Logo';
 
 function getLinkClass(isSolid: boolean, isActiveLink: boolean): string {
@@ -58,6 +58,27 @@ export function Navbar({ alwaysSolid = false }: Readonly<NavbarProps>) {
     window.addEventListener('scroll', handler);
     return () => window.removeEventListener('scroll', handler);
   }, []);
+
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+
+    const handleResize = () => {
+      if (window.innerWidth >= 1024 && mobileOpen) {
+        setMobileOpen(false);
+      }
+    };
+    
+    window.addEventListener('resize', handleResize);
+    
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [mobileOpen]);
 
   const isSolid = alwaysSolid || scrolled;
 
@@ -147,6 +168,19 @@ export function Navbar({ alwaysSolid = false }: Readonly<NavbarProps>) {
           >
             Client Login
           </Link>
+          
+          <button
+            type="button"
+            className={`lg:hidden p-2 rounded-xl transition-colors ${
+              isSolid ? 'text-slate-700 hover:bg-slate-100' : 'text-white hover:bg-white/10'
+            }`}
+            onClick={() => setMobileOpen(!mobileOpen)}
+            aria-label="Toggle navigation menu"
+            aria-expanded={mobileOpen}
+            aria-controls="mobile-nav-menu"
+          >
+            {mobileOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
         </div>
       </div>
 

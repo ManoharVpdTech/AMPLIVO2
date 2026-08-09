@@ -16,7 +16,7 @@ from app.modules.finance.schemas import *
 from app.modules.finance.service import *
 from app.modules.public_client_actions.schemas import ClientPaymentSubmitRequest
 
-router = APIRouter(prefix="/finance", tags=["Finance"])
+router = APIRouter(prefix="/finance", tags=["Finance"], dependencies=[Depends(get_current_user)])
 
 
 @router.get(
@@ -38,6 +38,7 @@ async def list_invoices(
     svc: InvoiceService = Depends(get_invoice_service),
     _: User = Depends(get_current_user),
     scoped_client_id: uuid.UUID | None = Depends(get_current_client_id),
+    _role: str = Depends(require_roles("finance")),
 ):
     effective_client_id = scoped_client_id if scoped_client_id is not None else client_id
     items, total = await svc.list_invoices(
@@ -88,7 +89,7 @@ async def get_advance_invoice_for_lead(lead_id: uuid.UUID, svc: InvoiceService =
     return InvoiceRead.model_validate(invoice) if invoice else None
 
 @router.get("/invoices/{invoice_id}/pdf", summary="Download invoice as PDF")
-async def get_invoice_pdf(invoice_id: uuid.UUID, svc: InvoiceService = Depends(get_invoice_service), _: User = Depends(get_current_user), scoped_client_id: uuid.UUID | None = Depends(get_current_client_id)):
+async def get_invoice_pdf(invoice_id: uuid.UUID, svc: InvoiceService = Depends(get_invoice_service), _: User = Depends(get_current_user), scoped_client_id: uuid.UUID | None = Depends(get_current_client_id), _role: str = Depends(require_roles("finance"))):
     from app.services.pdf_service import render_invoice_pdf
     invoice = await svc.get_invoice(invoice_id, scoped_client_id=scoped_client_id)
     pdf_bytes = render_invoice_pdf(invoice)
@@ -97,7 +98,7 @@ async def get_invoice_pdf(invoice_id: uuid.UUID, svc: InvoiceService = Depends(g
     })
 
 @router.get("/invoices/{invoice_id}", response_model=InvoiceRead, summary="Get invoice")
-async def get_invoice(invoice_id: uuid.UUID, svc: InvoiceService = Depends(get_invoice_service), _: User = Depends(get_current_user), scoped_client_id: uuid.UUID | None = Depends(get_current_client_id)):
+async def get_invoice(invoice_id: uuid.UUID, svc: InvoiceService = Depends(get_invoice_service), _: User = Depends(get_current_user), scoped_client_id: uuid.UUID | None = Depends(get_current_client_id), _role: str = Depends(require_roles("finance"))):
     return InvoiceRead.model_validate(await svc.get_invoice(invoice_id, scoped_client_id=scoped_client_id))
 
 @router.post(
@@ -142,7 +143,7 @@ async def delete_invoice(invoice_id: uuid.UUID, db: AsyncSession = Depends(get_d
 
 # ── Invoice Items ──
 @router.get("/invoices/{invoice_id}/items", response_model=list[InvoiceItemRead], summary="List invoice items")
-async def list_invoice_items(invoice_id: uuid.UUID, svc: InvoiceItemService = Depends(get_invoice_item_service), invoice_svc: InvoiceService = Depends(get_invoice_service), _: User = Depends(get_current_user), scoped_client_id: uuid.UUID | None = Depends(get_current_client_id)):
+async def list_invoice_items(invoice_id: uuid.UUID, svc: InvoiceItemService = Depends(get_invoice_item_service), invoice_svc: InvoiceService = Depends(get_invoice_service), _: User = Depends(get_current_user), scoped_client_id: uuid.UUID | None = Depends(get_current_client_id), _role: str = Depends(require_roles("finance"))):
     await invoice_svc.get_invoice(invoice_id, scoped_client_id=scoped_client_id)
     return [InvoiceItemRead.model_validate(x) for x in await svc.list_items(invoice_id)]
 
@@ -181,7 +182,7 @@ async def list_all_payments(
     return PaginatedResponse[PaymentRead].create(items=[PaymentRead.model_validate(p) for p in items], total=total, page=params.page, page_size=params.page_size)
 
 @router.get("/invoices/{invoice_id}/payments", response_model=list[PaymentRead], summary="List payments for invoice")
-async def list_payments(invoice_id: uuid.UUID, svc: PaymentService = Depends(get_payment_service), invoice_svc: InvoiceService = Depends(get_invoice_service), _: User = Depends(get_current_user), scoped_client_id: uuid.UUID | None = Depends(get_current_client_id)):
+async def list_payments(invoice_id: uuid.UUID, svc: PaymentService = Depends(get_payment_service), invoice_svc: InvoiceService = Depends(get_invoice_service), _: User = Depends(get_current_user), scoped_client_id: uuid.UUID | None = Depends(get_current_client_id), _role: str = Depends(require_roles("finance"))):
     await invoice_svc.get_invoice(invoice_id, scoped_client_id=scoped_client_id)
     return [PaymentRead.model_validate(x) for x in await svc.list_payments(invoice_id)]
 

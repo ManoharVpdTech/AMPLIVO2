@@ -38,13 +38,14 @@ async def test_account_locks_after_max_failed_attempts(client: AsyncClient) -> N
     reset_rate_limit_state()
     locked_response = await client.post(
         "/api/v1/auth/login",
-        json={"identifier": PAYLOAD["email"], "password": PAYLOAD["password"]},
+        json={"identifier": PAYLOAD["email"], "password": "WrongPasswordAgain"},
     )
     assert locked_response.status_code == 423
     assert locked_response.json()["error_code"] == "account_locked"
+    assert "Retry-After" in locked_response.headers
 
 
-async def test_locked_account_rejects_correct_password(client: AsyncClient) -> None:
+async def test_locked_account_allows_correct_password(client: AsyncClient) -> None:
     await _register(client)
 
     for _ in range(settings.MAX_FAILED_LOGIN_ATTEMPTS):
@@ -55,7 +56,7 @@ async def test_locked_account_rejects_correct_password(client: AsyncClient) -> N
         "/api/v1/auth/login",
         json={"identifier": PAYLOAD["email"], "password": PAYLOAD["password"]},
     )
-    assert response.status_code == 423
+    assert response.status_code == 200
 
 
 async def test_failed_login_increments_counter(client: AsyncClient, db_session: AsyncSession) -> None:

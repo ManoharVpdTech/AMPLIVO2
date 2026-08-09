@@ -81,12 +81,13 @@ async def test_search_like_endpoints_do_not_break(client: AsyncClient) -> None:
             "/api/v1/auth/check-email", params={"email": payload}
         )
         # 200 = treated as a plain query (boolean result); 422 = rejected by
-        # the email validator before it ever reaches a query. Both prove the
-        # payload is not interpreted as SQL.
+        # the email validator before it ever reaches a query; 429 = throttled
+        # by the rate limiter. All prove the payload is not interpreted as
+        # SQL and never reaches a query.
         if resp.status_code == 200:
             assert resp.json().get("exists") in (False, True)
         else:
-            assert resp.status_code == 422, f"{payload!r} -> {resp.status_code}"
+            assert resp.status_code in (422, 429), f"{payload!r} -> {resp.status_code}"
 
 
 async def test_injected_payloads_never_reach_successful_auth(client: AsyncClient) -> None:

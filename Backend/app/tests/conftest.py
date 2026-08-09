@@ -1,4 +1,9 @@
+import os
 from collections.abc import AsyncGenerator
+
+os.environ["DATABASE_URL"] = "sqlite+aiosqlite:///:memory:"
+os.environ["ENVIRONMENT"] = "testing"
+os.environ["JWT_SECRET_KEY"] = "testing_secret_key_at_least_32_characters_long_for_security"
 
 import pytest
 import pytest_asyncio

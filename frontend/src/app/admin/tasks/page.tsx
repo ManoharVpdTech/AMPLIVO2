@@ -344,7 +344,7 @@ export default function AdminTasks() {
                 {validationErrors.title && <p className="text-red-500 text-[11px] mt-1">{validationErrors.title}</p>}
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-slate-600 mb-1">Status</label>
                   <select
@@ -371,7 +371,7 @@ export default function AdminTasks() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-slate-600 mb-1">Project</label>
                   <select

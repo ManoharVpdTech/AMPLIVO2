@@ -1,24 +1,38 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Loader2, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { Logo } from '@/components/ui/Logo';
+import { authService } from '@/services/authService';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) return;
+    setError('');
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email || !emailRegex.test(email)) {
+      setError('Please enter a valid email address');
+      return;
+    }
     
     setIsSubmitting(true);
-    // Simulate network request
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      await authService.forgotPassword(email);
       setIsSubmitted(true);
-    }, 1500);
+    } catch (err: unknown) {
+      setError(
+        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ||
+          'Failed to send reset link. Please try again.'
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -54,18 +68,27 @@ export default function ForgotPasswordPage() {
         </div>
 
         {!isSubmitted ? (
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
             <div className="space-y-1">
-              <label htmlFor="reset-email" className="block text-[13px] font-medium text-slate-700">Email <span className="text-red-500">*</span></label>
+              <label htmlFor="forgot-email" className="block text-[13px] font-medium text-slate-700">Email <span className="text-red-500">*</span></label>
               <input
-                id="reset-email"
                 type="email"
+                id="forgot-email"
                 required
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (error) setError('');
+                }}
                 placeholder="name@company.com"
-                className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-[#4C1D95] focus:border-[#4C1D95] transition-shadow shadow-sm"
+                aria-describedby={error ? "forgot-email-error" : undefined}
+                className={`w-full bg-white border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-[#4C1D95] focus:border-[#4C1D95] transition-shadow shadow-sm ${error ? 'border-red-300' : 'border-slate-200'}`}
               />
+              {error && (
+                <p id="forgot-email-error" role="alert" className="text-red-500 text-xs flex items-center gap-1 mt-1">
+                  <AlertCircle size={12} /> {error}
+                </p>
+              )}
             </div>
 
             <button
@@ -88,7 +111,7 @@ export default function ForgotPasswordPage() {
             <div>
               <h3 className="text-emerald-800 font-semibold text-sm mb-1">Email Sent</h3>
               <p className="text-emerald-600 text-xs">
-                We've sent an email to <strong>{email}</strong> with instructions to reset your password.
+                We&apos;ve sent an email to <strong>{email}</strong> with instructions to reset your password.
               </p>
             </div>
           </div>

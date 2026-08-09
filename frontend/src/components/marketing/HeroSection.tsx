@@ -103,7 +103,7 @@ export function HeroSection() {
           </div>
 
           {/* Right — Animated Stats Grid */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {stats.map((stat, i) => (
               <AnimatedStat key={i} stat={stat} />
             ))}

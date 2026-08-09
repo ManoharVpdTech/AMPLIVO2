@@ -64,6 +64,10 @@ class AccountLockedException(AppException):
     error_code = "account_locked"
     message = "Account is temporarily locked due to too many failed login attempts."
 
+    def __init__(self, message: str | None = None, retry_after: int | None = None) -> None:
+        super().__init__(message)
+        self.retry_after = retry_after
+
 
 class RateLimitException(AppException):
     status_code = 429
@@ -178,3 +182,9 @@ class BadRequestException(AppException):
     status_code = 400
     error_code = "bad_request"
     message = "Bad request."
+
+
+class PasswordReuseException(AppException):
+    status_code = 400
+    error_code = "password_reuse"
+    message = "New password cannot be the same as the current password."

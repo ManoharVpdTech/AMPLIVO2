@@ -330,7 +330,7 @@ export default function AdminProjects() {
                 {validationErrors.name && <p className="text-red-500 text-[11px] mt-1">{validationErrors.name}</p>}
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="project-client" className="block text-xs font-semibold text-slate-600 mb-1">Client</label>
                   <select
@@ -362,7 +362,7 @@ export default function AdminProjects() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="project-status" className="block text-xs font-semibold text-slate-600 mb-1">Status</label>
                   <select
@@ -389,7 +389,7 @@ export default function AdminProjects() {
               </div>
 
               {/* BUG-33 Fixed: Mandatory Start Date & End Date fields with logical order validation */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-slate-600 mb-1">Start Date <span className="text-red-500">*</span></label>
                   <input

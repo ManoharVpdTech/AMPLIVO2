@@ -147,15 +147,11 @@ async def test_password_reset_revokes_all_sessions(client: AsyncClient, db_sessi
     session = result.scalar_one()
     assert session.is_active is False
 
-    # The access token itself is a stateless JWT and remains valid until its
-    # natural expiry (password reset revokes refresh tokens/sessions, not
-    # already-issued access tokens) - but the session it was issued from no
-    # longer shows up as active.
+    # Password reset revokes the session, so the old access token is now invalid and returns 401.
     sessions_response = await client.get(
         "/api/v1/auth/sessions", headers={"Authorization": f"Bearer {tokens['access_token']}"}
     )
-    assert sessions_response.status_code == 200
-    assert sessions_response.json() == []
+    assert sessions_response.status_code == 401
 
 
 async def test_password_reset_creates_session_revoked_audit_log(

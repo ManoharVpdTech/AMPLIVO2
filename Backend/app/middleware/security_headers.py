@@ -2,6 +2,8 @@ from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoin
 from starlette.requests import Request
 from starlette.responses import Response
 
+from app.core.config import settings
+
 _SECURITY_HEADERS = {
     "X-Frame-Options": "DENY",
     "X-Content-Type-Options": "nosniff",
@@ -29,7 +31,7 @@ _HSTS_VALUE = "max-age=31536000; includeSubDomains"
 
 # Swagger UI and ReDoc load JS/CSS from cdn.jsdelivr.net.  A blanket
 # 'self'-only CSP blocks those resources and renders the docs page blank.
-# We relax the policy *only* for the documentation paths.
+# We relax the policy *only* for the documentation paths when mounted.
 _DOCS_PATHS = ("/docs", "/redoc", "/openapi.json")
 
 _DOCS_CSP = (
@@ -108,7 +110,8 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         response = await call_next(request)
 
-        is_docs = any(request.url.path.endswith(p) for p in _DOCS_PATHS)
+        docs_mounted = settings.ENVIRONMENT.lower() != "production"
+        is_docs = docs_mounted and any(request.url.path.endswith(p) for p in _DOCS_PATHS)
 
         for header, value in _SECURITY_HEADERS.items():
             if header == "Content-Security-Policy" and is_docs:

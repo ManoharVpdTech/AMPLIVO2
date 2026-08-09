@@ -334,7 +334,7 @@ export default function AdminFinance() {
                 {validationErrors.client_name && <p className="text-red-500 text-[11px] mt-1">{validationErrors.client_name}</p>}
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">Amount (INR) <span className="text-red-500">*</span></label>
                   <input
@@ -365,7 +365,7 @@ export default function AdminFinance() {
               </div>
 
               {/* BUG-45: Mandatory Issue & Due Dates with Due Date >= Issue Date validation */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">Issue Date <span className="text-red-500">*</span></label>
                   <input

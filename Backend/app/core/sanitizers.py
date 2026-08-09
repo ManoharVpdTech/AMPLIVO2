@@ -14,7 +14,8 @@ from pydantic import BaseModel, model_validator
 
 _SCRIPT_TAG_RE = re.compile(r"<script[^>]*>.*?</script>", re.IGNORECASE | re.DOTALL)
 _HTML_TAG_RE = re.compile(r"<[^>]*>")
-_CONTROL_CHAR_RE = re.compile(r"[\x00-\x08\x0B\x0E-\x1F\x7F]")
+_CONTROL_CHAR_RE = re.compile(r"[\x00-\x1F\x7F]")
+_MULTILINE_CONTROL_CHAR_RE = re.compile(r"[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]")
 _CRLF_RE = re.compile(r"\r?\n|\r")
 
 
@@ -44,7 +45,7 @@ def sanitize_multiline(value: str | None) -> str | None:
     if value is None:
         return None
     value = strip_html(value)
-    value = _CONTROL_CHAR_RE.sub("", value)
+    value = _MULTILINE_CONTROL_CHAR_RE.sub("", value)
     value = value.strip()
     return value
 

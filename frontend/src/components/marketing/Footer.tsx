@@ -24,18 +24,19 @@ const footerLinks = {
     { label: 'Careers', href: '/careers' },
   ],
   Industries: [
-    { label: 'Real Estate', href: '/industries' },
-    { label: 'Education', href: '/industries' },
-    { label: 'Healthcare', href: '/industries' },
-    { label: 'E-Commerce', href: '/industries' },
-    { label: 'Startups & IT', href: '/industries' },
-    { label: 'Hospitality', href: '/industries' },
-    { label: 'Finance', href: '/industries' },
+    { label: 'Real Estate', href: '/industries/real-estate' },
+    { label: 'Education', href: '/industries/education' },
+    { label: 'Healthcare', href: '/industries/healthcare' },
+    { label: 'E-Commerce', href: '/industries/e-commerce' },
+    { label: 'Startups & IT', href: '/industries/startups' },
+    { label: 'Hospitality', href: '/industries/hospitality' },
+    { label: 'Finance', href: '/industries/finance-fintech' },
   ],
   'Quick Links': [
     { label: 'Contact Us', href: '/contact' },
     { label: 'Client Login', href: '/login' },
     { label: 'Get Free Audit', href: '/contact' },
+    { label: 'FAQ', href: '/faq' },
     { label: 'Privacy Policy', href: '/privacy-policy' },
     { label: 'Terms of Service', href: '/terms-of-service' },
     { label: 'Refund Policy', href: '/refund-policy' },
@@ -158,7 +159,7 @@ export function Footer() {
         {/* Bottom Bar */}
         <div className="border-t border-[#1F2937] pt-4 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-slate-400 text-sm">
-            © 2024 Amplivo Digital Growth Private Limited. All rights reserved.
+            © {new Date().getFullYear()} Amplivo Digital Growth Private Limited. All rights reserved.
 
           </p>
           <div className="flex flex-wrap gap-x-6 gap-y-2 text-slate-400 text-sm">

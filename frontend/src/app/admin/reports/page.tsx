@@ -435,7 +435,7 @@ export default function AdminReports() {
                   ))}
                 </select>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="report-type" className="block text-xs font-semibold text-slate-700 mb-1">Type</label>
                   <select

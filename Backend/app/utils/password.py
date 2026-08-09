@@ -26,6 +26,13 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         return False
 
 
+def dummy_verify() -> None:
+    """Perform a dummy bcrypt verification to consume constant time when a user is not found."""
+    # A valid-shaped bcrypt hash of a dummy value
+    dummy_hash = "$2b$12$n93Ui9q9J1YI2O8Z/w72G.1Y2O8Z/w72G.1Y2O8Z/w72G.1Y2O8Zu"
+    verify_password("dummy_password", dummy_hash)
+
+
 def generate_temp_password() -> str:
     """A random one-time password for a staff-provisioned client-portal
     account (see app/services/client_account_service.py) - always passes

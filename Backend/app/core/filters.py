@@ -74,6 +74,10 @@ def apply_sorting(
     if allowed_columns is None:
         allowed_columns = {c.key for c in model.__table__.columns}
 
+    if sort_by is not None and sort_by not in allowed_columns:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=422, detail=f"Invalid sort_by field. Allowed fields: {', '.join(allowed_columns)}")
+
     col_name = sort_by if sort_by in allowed_columns else default_sort
     column = getattr(model, col_name, None)
     if column is None:

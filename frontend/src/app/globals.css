@@ -305,10 +305,14 @@ a:active, button:active {
 
 /* ── Reduced Motion ───────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
-  .animate-gradient-shift,
-  .animate-ken-burns,
-  .animate-float,
-  .animate-float-slow,
-  .animate-pulse-node { animation: none !important; }
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  html {
+    scroll-behavior: auto !important;
+  }
 }
 

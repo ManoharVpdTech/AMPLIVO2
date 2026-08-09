@@ -15,13 +15,13 @@ interface PhoneInputProps {
   disabled?: boolean;
 }
 
-export function PhoneInput({ id, value, onChange, required, error, className, placeholder, disabled }: Readonly<PhoneInputProps>) {
+export function PhoneInput({ id, value, onChange, required, error, className, placeholder, disabled }: PhoneInputProps) {
   return (
     <div className={`phone-input-wrapper ${className || ''}`}>
       <PhoneInputLib
         id={id}
         international
-        defaultCountry="US"
+        defaultCountry="IN"
         value={value}
         onChange={onChange}
         required={required}

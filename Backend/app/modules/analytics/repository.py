@@ -9,18 +9,20 @@ from app.repositories.base import BaseRepository
 class DashboardRepository(BaseRepository[Dashboard]):
     model = Dashboard
     searchable_columns = [Dashboard.name, Dashboard.description]
-    async def get_all_filtered(self, *, search=None, is_shared=None, owner_id=None, sort_by=None, sort_order="desc", offset=0, limit=20) -> Sequence[Dashboard]:
+    async def get_all_filtered(self, *, search=None, is_shared=None, owner_id=None, current_user_id=None, sort_by=None, sort_order="desc", offset=0, limit=20) -> Sequence[Dashboard]:
         stmt = select(Dashboard)
         if is_shared is not None: stmt = stmt.where(Dashboard.is_shared == is_shared)
         if owner_id: stmt = stmt.where(Dashboard.owner_id == owner_id)
+        if current_user_id: stmt = stmt.where((Dashboard.owner_id == current_user_id) | (Dashboard.is_shared == True))
         stmt = apply_search(stmt, search=search, columns=self.searchable_columns)
         stmt = apply_sorting(stmt, model=Dashboard, sort_by=sort_by, sort_order=sort_order)
         stmt = stmt.offset(offset).limit(limit)
         return (await self._db.execute(stmt)).scalars().all()
-    async def count_filtered(self, *, search=None, is_shared=None, owner_id=None) -> int:
+    async def count_filtered(self, *, search=None, is_shared=None, owner_id=None, current_user_id=None) -> int:
         stmt = select(func.count()).select_from(Dashboard)
         if is_shared is not None: stmt = stmt.where(Dashboard.is_shared == is_shared)
         if owner_id: stmt = stmt.where(Dashboard.owner_id == owner_id)
+        if current_user_id: stmt = stmt.where((Dashboard.owner_id == current_user_id) | (Dashboard.is_shared == True))
         stmt = apply_search(stmt, search=search, columns=self.searchable_columns)
         return (await self._db.execute(stmt)).scalar_one()
 

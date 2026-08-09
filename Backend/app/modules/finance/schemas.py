@@ -16,7 +16,7 @@ class InvoiceBase(SanitizedModel):
     proposal_id: uuid.UUID | None = None
     project_id: uuid.UUID | None = None
     task_submission_id: uuid.UUID | None = None
-    invoice_number: str = Field(min_length=1, max_length=100)
+    invoice_number: str = Field(min_length=1, max_length=99)
     invoice_type: str = Field(min_length=1, max_length=50)
     status: str = Field(min_length=1, max_length=50)
     issue_date: date
@@ -30,7 +30,7 @@ class InvoiceBase(SanitizedModel):
 class InvoiceCreate(InvoiceBase): pass
 class InvoiceUpdate(SanitizedModel):
     client_id: uuid.UUID | None = None
-    invoice_number: str | None = Field(None, min_length=1, max_length=100)
+    invoice_number: str | None = Field(None, min_length=1, max_length=99)
     status: str | None = Field(None, min_length=1, max_length=50)
     issue_date: date | None = None
     due_date: date | None = None
@@ -153,7 +153,7 @@ class PaymentRejectRequest(SanitizedModel):
 # ── Expense ──
 class ExpenseBase(SanitizedModel):
     category: str = Field(min_length=1, max_length=100)
-    amount: float
+    amount: float = Field(gt=0)
     currency: str = Field(min_length=1, max_length=10)
     expense_date: date
     description: str | None = Field(None, min_length=1, max_length=2000)
@@ -162,7 +162,7 @@ class ExpenseBase(SanitizedModel):
 class ExpenseCreate(ExpenseBase): pass
 class ExpenseUpdate(SanitizedModel):
     category: str | None = Field(None, min_length=1, max_length=100)
-    amount: float | None = None
+    amount: float | None = Field(None, gt=0)
     currency: str | None = Field(None, min_length=1, max_length=10)
     expense_date: date | None = None
     description: str | None = Field(None, min_length=1, max_length=2000)

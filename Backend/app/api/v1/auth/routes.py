@@ -11,7 +11,7 @@ from app.api.v1.auth.responses import (
     REFRESH_RESPONSES,
     REGISTER_RESPONSES,
 )
-from app.core.exceptions import InvalidCredentialsException, WeakPasswordException
+from app.core.exceptions import InvalidCredentialsException, WeakPasswordException, PasswordReuseException
 from app.dependencies.auth import get_current_user
 from app.dependencies.db import get_db
 from app.dependencies.services import get_auth_service, get_user_service
@@ -171,6 +171,8 @@ async def change_password(
 ) -> MessageResponse:
     if not verify_password(payload.current_password, current_user.hashed_password):
         raise InvalidCredentialsException()
+    if payload.new_password == payload.current_password:
+        raise PasswordReuseException()
     if not is_strong_password(payload.new_password):
         raise WeakPasswordException()
     repo = UserRepository(db)
@@ -198,7 +200,7 @@ async def check_email(
     summary="Check whether a username is already taken",
 )
 async def check_username(
-    username: str = Query(..., min_length=3, max_length=50, description="Username to check"),
+    username: str = Query(..., min_length=3, max_length=50, pattern=r"^[a-zA-Z0-9_.]+$", description="Username to check"),
     user_service: UserService = Depends(get_user_service),
 ) -> UsernameExistsResponse:
     exists = await user_service.check_username_exists(username)

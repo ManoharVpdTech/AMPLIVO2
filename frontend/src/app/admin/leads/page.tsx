@@ -590,7 +590,7 @@ export default function AdminLeads() {
                 {validationErrors.title && <p className="text-red-500 text-[11px] mt-1">{validationErrors.title}</p>}
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-slate-600 mb-1">Contact Name <span className="text-red-500">*</span></label>
                   <input
@@ -614,7 +614,7 @@ export default function AdminLeads() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-slate-600 mb-1">Email <span className="text-red-500">*</span></label>
                   <input
@@ -639,7 +639,7 @@ export default function AdminLeads() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-slate-600 mb-1">Status</label>
                   <select
@@ -666,7 +666,7 @@ export default function AdminLeads() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-slate-600 mb-1">Estimated Value (₹)</label>
                   <input

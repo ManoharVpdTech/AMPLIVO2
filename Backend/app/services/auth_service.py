@@ -62,17 +62,26 @@ class AuthService:
 
         locked_until = as_aware_utc(user.locked_until) if user is not None else None
         if locked_until is not None and locked_until > utc_now():
-            await self._audit_service.log(
-                user_id=user.id,
-                action=AuditAction.ACCESS_DENIED,
-                endpoint=endpoint,
-                request_method=request_method,
-                client_context=client_context,
-                status=AuditStatus.FAILURE,
-                message="Login rejected: account is locked.",
-            )
-            await self._db.commit()
-            raise AccountLockedException()
+            if user is not None and verify_password(password, user.hashed_password):
+                # Correct password: bypass the lockout check so owner can still log in
+                pass
+            else:
+                retry_after_seconds = int((locked_until - utc_now()).total_seconds())
+                await self._audit_service.log(
+                    user_id=user.id,
+                    action=AuditAction.ACCESS_DENIED,
+                    endpoint=endpoint,
+                    request_method=request_method,
+                    client_context=client_context,
+                    status=AuditStatus.FAILURE,
+                    message="Login rejected: account is locked.",
+                )
+                await self._db.commit()
+                raise AccountLockedException(retry_after=max(1, retry_after_seconds))
+
+        if user is None:
+            from app.utils.password import dummy_verify
+            dummy_verify()
 
         if user is None or not verify_password(password, user.hashed_password):
             if user is not None:

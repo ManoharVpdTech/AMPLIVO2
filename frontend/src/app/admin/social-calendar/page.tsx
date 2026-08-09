@@ -291,7 +291,7 @@ export default function AdminSocialCalendar() {
                   ))}
                 </select>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="social-platform" className="block text-xs font-semibold text-slate-600 mb-1">Platform</label>
                   <select

@@ -216,7 +216,7 @@ export default function AdminSettings() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1.5">Agency Name</label>
                         <input type="text" value={form.agency_name} onChange={(e) => updateField('agency_name', e.target.value)} className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#4C1D95]" />
@@ -227,7 +227,7 @@ export default function AdminSettings() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1.5">Support Email</label>
                         <input type="email" value={form.support_email} onChange={(e) => updateField('support_email', e.target.value)} className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#4C1D95]" />
@@ -243,7 +243,7 @@ export default function AdminSettings() {
                       <textarea rows={3} value={form.hq_address} onChange={(e) => updateField('hq_address', e.target.value)} placeholder="Full address for invoices..." className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#4C1D95] resize-none" />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1.5">Base Currency</label>
                         <select value={form.base_currency} onChange={(e) => updateField('base_currency', e.target.value)} className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#4C1D95] bg-white">
@@ -275,7 +275,7 @@ export default function AdminSettings() {
               {activeTab === 'branding' && (
                 <div className="space-y-6">
                   <h2 className="text-lg font-bold text-slate-900" style={{ fontFamily: "'Sora', sans-serif" }}>Brand Customization</h2>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label htmlFor="settings-primary-color" className="block text-xs font-semibold text-slate-600 mb-1.5">Primary Accent Color</label>
                       <div className="flex items-center gap-3">

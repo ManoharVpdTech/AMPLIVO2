@@ -35,7 +35,8 @@ class CampaignRepository(BaseRepository[Campaign]):
         if type_: stmt = stmt.where(Campaign.type == type_)
         if manager_id: stmt = stmt.where(Campaign.manager_id == manager_id)
         stmt = apply_search(stmt, search=search, columns=self.searchable_columns)
-        stmt = apply_sorting(stmt, model=Campaign, sort_by=sort_by, sort_order=sort_order)
+        allowed_sort = {"id", "name", "type", "status", "start_date", "end_date", "budget", "spent_amount", "created_at", "updated_at"}
+        stmt = apply_sorting(stmt, model=Campaign, sort_by=sort_by, sort_order=sort_order, allowed_columns=allowed_sort)
         stmt = stmt.offset(offset).limit(limit)
         return (await self._db.execute(stmt)).scalars().all()
 

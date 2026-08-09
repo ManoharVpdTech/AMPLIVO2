@@ -93,7 +93,16 @@ export default function RegisterPage() {
       <div className="flex-1 flex items-center justify-center px-6 bg-white">
         <div className="w-full max-w-md">
           {/* Logo */}
-          <Logo size="auth" href="/" className="flex items-center mb-10" />
+          <Logo size="auth" href="/" className="flex items-center mb-8" />
+
+          {/* Mobile-only Brand Banner */}
+          <div className="lg:hidden bg-gradient-to-br from-[#4C1D95] to-[#06B6D4] rounded-2xl p-6 text-white mb-8 relative overflow-hidden shadow-md">
+            <div className="absolute inset-0 opacity-[0.08]" style={{ backgroundImage: 'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
+            <div className="relative">
+              <h2 className="text-xl font-bold mb-2 tracking-tight">Start Your Growth Journey</h2>
+              <p className="text-white/80 text-sm leading-relaxed">Access powerful CRM tools, manage projects, and collaborate from a single platform.</p>
+            </div>
+          </div>
 
           <h1 className="text-3xl font-bold text-slate-900 mb-2" style={{ fontFamily: "'Sora', sans-serif" }}>
             Create an account
@@ -108,10 +117,11 @@ export default function RegisterPage() {
             )}
 
             <div>
-              <label htmlFor="reg-fullname" className="block text-sm font-medium text-slate-700 mb-1.5">Full Name <span className="text-red-500">*</span></label>
+              <label htmlFor="register-fullname" className="block text-sm font-medium text-slate-700 mb-1.5">Full Name <span className="text-red-500">*</span></label>
               <input
-                id="reg-fullname"
                 type="text"
+                id="register-fullname"
+                aria-describedby={errors.full_name ? "register-fullname-error" : undefined}
                 {...register('full_name')}
                 className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#4C1D95]/20 focus:border-[#4C1D95] ${
                   errors.full_name ? 'border-red-300' : 'border-slate-200'
@@ -120,41 +130,46 @@ export default function RegisterPage() {
                 pattern="[A-Za-z\s]+"
                 title="Only letters and spaces are allowed"
               />
-              {errors.full_name && <p className="text-red-500 text-xs mt-1.5">{errors.full_name.message}</p>}
+              {errors.full_name && <p id="register-fullname-error" role="alert" className="text-red-500 text-xs mt-1.5">{errors.full_name.message}</p>}
             </div>
 
             <div>
-              <label htmlFor="reg-email" className="block text-sm font-medium text-slate-700 mb-1.5">Email Address <span className="text-red-500">*</span></label>
+              <label htmlFor="register-email" className="block text-sm font-medium text-slate-700 mb-1.5">Email Address <span className="text-red-500">*</span></label>
               <input
-                id="reg-email"
                 type="email"
+                id="register-email"
+                aria-describedby={errors.email ? "register-email-error" : undefined}
                 {...register('email')}
                 className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#4C1D95]/20 focus:border-[#4C1D95] ${
                   errors.email ? 'border-red-300' : 'border-slate-200'
                 }`}
                 placeholder="john@example.com"
               />
-              {errors.email && <p className="text-red-500 text-xs mt-1.5">{errors.email.message}</p>}
+              {errors.email && <p id="register-email-error" role="alert" className="text-red-500 text-xs mt-1.5">{errors.email.message}</p>}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Username <span className="text-red-500">*</span></label>
+              <label htmlFor="register-username" className="block text-sm font-medium text-slate-700 mb-1.5">Username <span className="text-red-500">*</span></label>
               <input
                 type="text"
+                id="register-username"
+                aria-describedby={errors.username ? "register-username-error" : undefined}
                 {...register('username')}
                 className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#4C1D95]/20 focus:border-[#4C1D95] ${
                   errors.username ? 'border-red-300' : 'border-slate-200'
                 }`}
                 placeholder="john_doe"
               />
-              {errors.username && <p className="text-red-500 text-xs mt-1.5">{errors.username.message}</p>}
+              {errors.username && <p id="register-username-error" role="alert" className="text-red-500 text-xs mt-1.5">{errors.username.message}</p>}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Password <span className="text-red-500">*</span></label>
+              <label htmlFor="register-password" className="block text-sm font-medium text-slate-700 mb-1.5">Password <span className="text-red-500">*</span></label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
+                  id="register-password"
+                  aria-describedby={errors.password ? "register-password-error" : undefined}
                   {...register('password')}
                   className={`w-full border rounded-xl px-4 py-3 text-sm pr-11 focus:outline-none focus:ring-2 focus:ring-[#4C1D95]/20 focus:border-[#4C1D95] ${
                     errors.password ? 'border-red-300' : 'border-slate-200'
@@ -164,25 +179,28 @@ export default function RegisterPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                   className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
-              {errors.password && <p className="text-red-500 text-xs mt-1.5">{errors.password.message}</p>}
+              {errors.password && <p id="register-password-error" role="alert" className="text-red-500 text-xs mt-1.5">{errors.password.message}</p>}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Confirm Password <span className="text-red-500">*</span></label>
+              <label htmlFor="register-confirm" className="block text-sm font-medium text-slate-700 mb-1.5">Confirm Password <span className="text-red-500">*</span></label>
               <input
                 type="password"
+                id="register-confirm"
+                aria-describedby={errors.confirmPassword ? "register-confirm-error" : undefined}
                 {...register('confirmPassword')}
                 className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#4C1D95]/20 focus:border-[#4C1D95] ${
                   errors.confirmPassword ? 'border-red-300' : 'border-slate-200'
                 }`}
                 placeholder="Confirm your password"
               />
-              {errors.confirmPassword && <p className="text-red-500 text-xs mt-1.5">{errors.confirmPassword.message}</p>}
+              {errors.confirmPassword && <p id="register-confirm-error" role="alert" className="text-red-500 text-xs mt-1.5">{errors.confirmPassword.message}</p>}
             </div>
 
             <div className="pt-4">
