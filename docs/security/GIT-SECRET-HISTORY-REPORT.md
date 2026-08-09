@@ -109,6 +109,20 @@ The script:
 | Full‑tree regex sweep (untracked+nested + ignored) | 0 (DB‑pw literal, AWZ‑keys → none) |
 | `git log -S <leaked literal>` | only the 7 historical commits above + removal commit |
 
+## 4b. CI Gitleaks false positives (allowlisted, not credentials)
+
+The CI Gitleaks scan (`secret-scan` job) flags exactly two items, both of which
+are **false positives** and are now exempted via a scoped `.gitleaks.toml`
+at the repo root (`[extend] useDefault = true`, so all default rules stay on):
+
+| Finding | File / value | Why it is not a secret |
+|---|---|---|
+| `generic-api-key` on a "password" string | `Backend/app/tests/test_account_lockout.py` — `CorrectPass123` | Positive-control fixture that asserts a *wrong* password is rejected during lockout testing. Not a credential. |
+| `generic-api-key` on an `api_key` literal | `frontend/src/app/admin/settings/page.tsx` (historical placeholder `amp_live_9837429874928374`) | Demo form pre-fill only; already replaced with inert `demo-placeholder-not-a-real-key` in the working tree. Real key comes from env at runtime. |
+
+Deliberate scoping: the allowlist exempts **only the exact strings above** (regex
+on value), not whole files, so any other key that appears still triggers CI.
+
 ## 5. Definitions of done / remaining
 
 | Item | Status |

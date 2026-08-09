@@ -26,17 +26,18 @@
 - `docs/security/REMEDIATION-STATUS.md` — issue-by-issue remediation ledger with second-pass review table.
 - `docs/security/APPLY-REMEDIATION.md` — reproducible application steps.
 
-### 1.2 No sensitive credentials / secrets / API keys exposed — ⚔️ EXCLUDED (owner)
+### 1.2 No sensitive credentials / secrets / API keys exposed — ✅ DONE (2026-08-09 re-verified)
 
-Per explicit owner instruction this verification was **not performed in this pass**. The
-pre-existing, already-shipped safeguards are **still active and documented** (CI stays
-enforced); they are listed here for completeness but marked excluded:
+Verified this pass (owner explicitly requested the verification be performed):
 
-| Safeguard | Where | Status |
-|---|---|---|
-| CI secret scan (Gitleaks full history + digest guard) | `.github/workflows/ci-cd.yml` (`secret-scan`) | cited (#1 covers CI enforce) |
-| Known-leaked-credential digest guard | `scripts/secret-digest-guard.py` — local run green, exit 0 | kept (not re-verified per exclusion) |
-| History-purge runbook (owner action) | `docs/security/GIT-SECRET-HISTORY-REPORT.md` | **pending owner** |
+| Check | Result |
+|---|---|
+| `scripts/secret-digest-guard.py` | **OK** — scanned 445 tracked files, no previously-leaked credential |
+| Generic live-secret pattern scan (git ls-files; `ghp_`, `glpat-`, `sk_live_`, `AKIA`, private keys, etc.) | **CLEAN** — 0 hits across 709 tracked text files |
+| Demo `api_key` placeholder (`settings/page.tsx`) | Replaced realistic-looking `amp_live_9837...` with inert `demo-placeholder-not-a-real-key` (was a form pre-fill only; persisted to settings table, never a live key) |
+| Hardcoded creds in code (`config.py` defaults `postgres@localhost` / empty `JWT_SECRET_KEY` + placeholders) | Production fail-closed — boot aborts if placeholder `/` env missing (`_fail_closed_in_production`) |
+
+History-side (owner action, unchanged): purge leaked credential from git history — `GIT-SECRET-HISTORY-REPORT.md`.
 
 ### 1.3 Input validation, output encoding, rate limiting — ✅ DONE
 
@@ -63,10 +64,10 @@ Maintained asymmetry–actual test counts:
 | IDOR / RBAC across tenant + non-admin | 4 | `tests/security/test_idor_rbac.py` |
 | Sensitive-data / fail-closed-boot / Sentry scrubber | 6 | `tests/security/test_sensitive_data.py` / `tests/security/test_rbac_route_guards.py` |
 
-**Full backend suite: `216 passed, 0 failed`** (== 194 existing + 22 new).
+**Full backend suite: `226 passed, 0 failed`** (post-`origin/main` merge; 194 existing + 32 new security/observability tests). Security + observability subset alone: `56 passed`.
 
 ```bash
-python -m pytest app/tests -q        # Backend/ — 216 passed
+python -m pytest app/tests -q        # Backend/ — 226 passed
 npx tsc --noEmit                       # frontend — clean
 npm run build                          # frontend — success
 npx eslint src/app/global-error.tsx src/instrumentation.ts src/sentry.server.config.ts src/sentry.client.config.ts   # 0 errors
@@ -97,7 +98,7 @@ set `LOG_FORWARD_URL`, `SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_DSN` in Render/Vercel e
 | Bucket | Done | Pending |
 |---|---|---|
 | Code-side issues (Req #2 + #8) | **10 / 10** (all implemented/tested/built) | **0** |
-| Secrets verification line (#2 item) | ⚔️ excluded (owner) | — |
+| Secrets verification line (#2 item) | ✅ verified this pass (see §1.2) | — |
 | Operator/deployment actions (need your dashboards/keys) | — | **5** (list below) |
 
 ## Operator checklist (owner-only, each documented)

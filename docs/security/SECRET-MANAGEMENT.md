@@ -42,6 +42,11 @@ the leak remediation. It never contains a secret.
    - Local verification: "OK: scanned 761 tracked files" exit 0 on the current
      tree; a planted copy was positively detected (1 hit).
 
+`.gitleaks.toml` (repo root) extends the Gitleaks default rules with a narrow
+allowlist for exactly two CI false positives — the lockout test fixture value
+(`CorrectPass123`) and the historical demo `api_key` placeholder already
+replaced in the working tree. All other default rules remain fully active.
+
 Both steps reject the PR before merge; the fingerprint guard specifically
 prevents the past credential from ever reappearing.
 
